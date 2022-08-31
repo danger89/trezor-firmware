@@ -48,6 +48,8 @@ static void _librust_qstrs(void) {
   MP_QSTR_show_lockscreen;
   MP_QSTR_show_remaining_shares;
   MP_QSTR_show_share_words;
+  MP_QSTR_set_keepalive_callback;
+  MP_QSTR_remove_keepalive_callback;
 
   MP_QSTR_attach_timer_fn;
   MP_QSTR_touch_event;

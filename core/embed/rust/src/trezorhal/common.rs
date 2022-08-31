@@ -98,3 +98,5 @@ macro_rules! fatal_error {
         crate::trezorhal::common::__fatal_error($expr, $msg, file!(), line!(), function_name!());
     }};
 }
+
+pub(crate) use fatal_error;

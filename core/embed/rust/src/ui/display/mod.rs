@@ -24,10 +24,14 @@ use crate::{
     },
     ui::lerp::Lerp,
 };
-use core::slice;
+use core::{num::TryFromIntError, slice};
 
 #[cfg(any(feature = "model_tt", feature = "model_tr"))]
 pub use loader::{loader, loader_indeterminate, LOADER_MAX, LOADER_MIN};
+
+pub fn refresh() {
+    display::refresh();
+}
 
 pub fn backlight() -> i32 {
     display::backlight(-1)
@@ -35,6 +39,14 @@ pub fn backlight() -> i32 {
 
 pub fn set_backlight(val: i32) {
     display::backlight(val);
+}
+
+pub fn orientation() -> i32 {
+    display::orientation(-1)
+}
+
+pub fn set_orientation(degrees: i32) {
+    display::orientation(degrees);
 }
 
 pub fn fade_backlight(target: i32) {
@@ -150,6 +162,28 @@ pub fn image(center: Point, data: &[u8]) {
 
     let r = Rect::from_center_and_size(center, toif_size);
     display::image(r.x0, r.y0, r.width(), r.height(), toif_data);
+}
+
+pub fn avatar(center: Point, data: &[u8], fgcolor: Color, bgcolor: Color) {
+    let toif_info = display::toif_info(data);
+
+    if toif_info.is_ok() {
+        let toif_info = unwrap!(toif_info);
+
+        let width: Result<i16, TryFromIntError> = toif_info.width.try_into();
+        let height: Result<i16, TryFromIntError> = toif_info.height.try_into();
+        if toif_info.format == ToifFormat::FullColorBE && width.is_ok() && height.is_ok() {
+            let r =
+                Rect::from_center_and_size(center, Offset::new(unwrap!(width), unwrap!(height)));
+            display::avatar(
+                r.x0.into(),
+                r.y0.into(),
+                &data[12..], // Skip TOIF header.
+                fgcolor.into(),
+                bgcolor.into(),
+            );
+        };
+    }
 }
 
 pub fn toif_info(data: &[u8]) -> Option<(Offset, ToifFormat)> {

@@ -1,3 +1,4 @@
+pub mod alloc;
 pub mod bip39;
 #[macro_use]
 #[allow(unused_macros)]
@@ -17,6 +18,12 @@ pub mod usb;
 pub mod uzlib;
 
 pub mod buffers;
+#[cfg(feature = "sdcard")]
+pub mod fatfs;
+pub mod hmac;
+pub mod io;
+#[cfg(feature = "sdcard")]
+pub mod sdcard;
 #[cfg(not(feature = "micropython"))]
 pub mod time;
 

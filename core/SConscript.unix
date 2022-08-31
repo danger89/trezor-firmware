@@ -343,6 +343,7 @@ SOURCE_MICROPYTHON = [
 ]
 
 SOURCE_UNIX = [
+    'embed/unix/alloc_only.c',
     'embed/unix/common.c',
     'embed/unix/flash.c',
     'embed/unix/main.c',
@@ -694,9 +695,10 @@ else:
     RUST_LIBDIR = f'build/unix/rust/{TARGET}/release'
 RUST_LIB = 'trezor_lib'
 RUST_LIBPATH = f'{RUST_LIBDIR}/lib{RUST_LIB}.a'
+RUST_LIBPATH = f'{RUST_LIBDIR}/lib{RUST_LIB}.a'
 
 def cargo_build():
-    features = ['micropython', 'protobuf', f'model_t{TREZOR_MODEL.lower()}']
+    features = ['micropython', 'protobuf', 'emulator', f'model_t{TREZOR_MODEL.lower()}']
     if BITCOIN_ONLY == '1':
         features.append('bitcoin_only')
     if UI2:

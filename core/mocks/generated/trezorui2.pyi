@@ -381,3 +381,15 @@ def show_busyscreen(
     skip_first_paint: bool,
 ) -> trezorui2.CANCELLED:
     """Homescreen used for indicating coinjoin in progress."""
+
+
+# rust/src/ui/model_tt/layout.rs
+def set_keepalive_callback(
+    callback: KeepaliveCallback,
+) -> None:
+   """Sets keepalive callback. """
+
+
+# rust/src/ui/model_tt/layout.rs
+def remove_keepalive_callback() -> None:
+   """Removes keepalive callback. """

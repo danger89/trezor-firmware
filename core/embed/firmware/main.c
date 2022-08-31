@@ -53,6 +53,8 @@
 #if defined TREZOR_MODEL_R || defined TREZOR_MODEL_1
 #include "button.h"
 #endif
+#include "alloc_only.h"
+#include "rust_ui.h"
 
 #ifdef SYSTEM_VIEW
 #include "systemview.h"
@@ -103,6 +105,13 @@ int main(void) {
   dma2d_init();
 #endif
 
+#if defined TREZOR_MODEL_T
+  display_set_little_endian();
+#endif
+
+  boot_screen_full();
+  display_backlight(150);
+
 #if !PRODUCTION
   // enable BUS fault and USAGE fault handlers
   SCB->SHCSR |= (SCB_SHCSR_USGFAULTENA_Msk | SCB_SHCSR_BUSFAULTENA_Msk);
@@ -121,10 +130,9 @@ int main(void) {
 #endif
 
 #if defined TREZOR_MODEL_T
+  // display_clear();
   touch_init();
-  display_set_little_endian();
   sdcard_init();
-  display_clear();
 #endif
 
 #if !defined TREZOR_MODEL_1
@@ -138,6 +146,9 @@ int main(void) {
   ensure(sectrue * (zkp_context_init() == 0), NULL);
 #endif
 
+  alloc_only_init(false);
+  boot_firmware();
+
   printf("CORE: Preparing stack\n");
   // Stack limit should be less than real stack size, so we have a chance
   // to recover from limit hit.
@@ -150,6 +161,7 @@ int main(void) {
 #endif
 
   // GC init
+  alloc_only_init(true);
   printf("CORE: Starting GC\n");
   gc_init(&_heap_start, &_heap_end);
 
