@@ -73,11 +73,12 @@ pub fn get_device_id() -> String<24> {
 
 pub fn get_flag(key: u16) -> bool {
     let mut buf = [0u8];
-    let len = get(key, &mut buf);
-    if matches!(len, Ok(1)) {
-        return buf[0] != 0;
+    let result = get(key, &mut buf);
+    if let Ok(result) = result {
+        result[0] != 0
+    } else {
+        false
     }
-    false
 }
 
 pub fn migrate_from_version_01() {
