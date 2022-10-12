@@ -26,6 +26,7 @@ static void _librust_qstrs(void) {
   MP_QSTR_confirm_reset_device;
   MP_QSTR_confirm_text;
   MP_QSTR_confirm_value;
+  MP_QSTR_confirm_webauthn;
   MP_QSTR_confirm_with_info;
   MP_QSTR_confirm_recovery;
   MP_QSTR_show_checklist;

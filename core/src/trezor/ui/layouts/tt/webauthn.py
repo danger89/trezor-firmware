@@ -12,19 +12,36 @@ from ..common import interact
 async def confirm_webauthn(
     ctx: wire.GenericContext | None,
     info: ConfirmInfo,
-    pageable: Pageable | None = None,
 ) -> bool:
+    """Webauthn confirmation for just one specific credential."""
+    # There is no choice here, just one page.
+    # Converting the `int | None` result into a `bool`.
+    result = await confirm_webauthn_choose(ctx, info)
+    return result is not None
+
+
+async def confirm_webauthn_choose(
+    ctx: wire.GenericContext | None,
+    info: ConfirmInfo,
+    pageable: Pageable | None = None,
+) -> int | None:
     if pageable is not None:
         confirm: ui.Layout = ConfirmPageable(pageable, ConfirmContent(info))
     else:
         confirm = Confirm(ConfirmContent(info))
 
     if ctx is None:
-        return is_confirmed(await confirm)
+        result = is_confirmed(await confirm)
     else:
-        return is_confirmed(
+        result = is_confirmed(
             await interact(ctx, confirm, "confirm_webauthn", ButtonRequestType.Other)
         )
+
+    # NOTE: being compatible with UI2's need to send Optional[int]
+    if not result:
+        return None
+    else:
+        return 0 if pageable is None else pageable.page()
 
 
 async def confirm_webauthn_reset() -> bool:

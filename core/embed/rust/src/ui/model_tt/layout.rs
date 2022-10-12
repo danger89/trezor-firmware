@@ -37,11 +37,11 @@ use crate::{
 use super::{
     component::{
         Bip39Input, Button, ButtonMsg, ButtonStyleSheet, CancelConfirmMsg, CancelInfoConfirmMsg,
-        Dialog, DialogMsg, Frame, HoldToConfirm, HoldToConfirmMsg, IconDialog, MnemonicInput,
-        MnemonicKeyboard, MnemonicKeyboardMsg, NotificationFrame, NumberInputDialog,
-        NumberInputDialogMsg, PassphraseKeyboard, PassphraseKeyboardMsg, PinKeyboard,
-        PinKeyboardMsg, SelectWordCount, SelectWordCountMsg, SelectWordMsg, Slip39Input,
-        SwipeHoldPage, SwipePage,
+        Dialog, DialogMsg, FidoMsg, FidoPage, FidoPaginatedPage, Frame, HoldToConfirm,
+        HoldToConfirmMsg, IconDialog, MnemonicInput, MnemonicKeyboard, MnemonicKeyboardMsg,
+        NotificationFrame, NumberInputDialog, NumberInputDialogMsg, PassphraseKeyboard,
+        PassphraseKeyboardMsg, PinKeyboard, PinKeyboardMsg, SelectWordCount, SelectWordCountMsg,
+        SelectWordMsg, Slip39Input, SwipeHoldPage, SwipePage,
     },
     theme,
 };
@@ -85,6 +85,20 @@ impl TryFrom<SelectWordCountMsg> for Obj {
     fn try_from(value: SelectWordCountMsg) -> Result<Self, Self::Error> {
         match value {
             SelectWordCountMsg::Selected(i) => i.try_into(),
+        }
+    }
+}
+
+impl<F, T, U> ComponentMsgObj for FidoPaginatedPage<F, T, U>
+where
+    F: Fn(usize) -> FidoPage<T>,
+    T: AsRef<str>,
+    U: Component<Msg = CancelConfirmMsg>,
+{
+    fn msg_try_into_obj(&self, msg: Self::Msg) -> Result<Obj, Error> {
+        match msg {
+            FidoMsg::Confirmed(page) => Ok((page as u8).into()),
+            FidoMsg::Cancelled => Ok(CANCELLED.as_obj()),
         }
     }
 }
@@ -655,6 +669,48 @@ extern "C" fn new_show_error(n_args: usize, args: *const Obj, kwargs: *mut Map) 
     unsafe { util::try_with_args_and_kwargs(n_args, args, kwargs, block) }
 }
 
+extern "C" fn new_confirm_webauthn(n_args: usize, args: *const Obj, kwargs: *mut Map) -> Obj {
+    let block = move |_args: &[Obj], kwargs: &Map| {
+        let title: StrBuffer = kwargs.get(Qstr::MP_QSTR_title)?.try_into()?;
+        let icon: Option<StrBuffer> = kwargs.get(Qstr::MP_QSTR_icon)?.try_into_option()?;
+        let pages: Obj = kwargs.get(Qstr::MP_QSTR_pages)?;
+
+        // Need to find the overall page count for pagination purposes.
+        let page_count = {
+            let mut iter_buf = IterBuf::new();
+            let iter = Iter::try_from_obj_with_buf(pages, &mut iter_buf)?;
+            iter.count()
+        };
+
+        // Closure to lazy-load the information on given page index.
+        // Done like this to allow arbitrarily many pages without
+        // the need of any allocation here in Rust.
+        let get_page = move |page_index| {
+            let page: Obj = {
+                let mut iter_buf = IterBuf::new();
+                let mut iter = unwrap!(Iter::try_from_obj_with_buf(pages, &mut iter_buf));
+                iter.nth(page_index).unwrap()
+            };
+
+            let [app_name, account_name]: [StrBuffer; 2] = unwrap!(iter_into_array(page));
+
+            FidoPage::new(app_name, account_name)
+        };
+
+        let controls = Button::cancel_confirm(
+            Button::with_icon(theme::ICON_CANCEL).styled(theme::button_cancel()),
+            Button::with_text("CONFIRM").styled(theme::button_confirm()),
+            2,
+        );
+
+        let fido_page = FidoPaginatedPage::new(get_page, page_count, icon, controls);
+
+        let obj = LayoutObj::new(Frame::new(title, fido_page).with_border(theme::borders()))?;
+        Ok(obj.into())
+    };
+    unsafe { util::try_with_args_and_kwargs(n_args, args, kwargs, block) }
+}
+
 extern "C" fn new_show_warning(n_args: usize, args: *const Obj, kwargs: *mut Map) -> Obj {
     let block = move |_args: &[Obj], kwargs: &Map| {
         let icon = BlendedImage::new(
@@ -1164,6 +1220,18 @@ pub static mp_module_trezorui2: Module = obj_module! {
     /// ) -> object:
     ///     """Decrease or increase transaction fee."""
     Qstr::MP_QSTR_confirm_modify_fee => obj_fn_kw!(0, new_confirm_modify_fee).as_obj(),
+
+    /// def confirm_webauthn(
+    ///     *,
+    ///     title: str,
+    ///     pages: Iterable[tuple[str, str]],
+    ///     icon: str | None,
+    /// ) -> int | object:
+    ///     """Webauthn confirmation.
+    ///
+    ///     Returns page index in case of confirmation and CANCELLED otherwise.
+    ///     """
+    Qstr::MP_QSTR_confirm_webauthn => obj_fn_kw!(0, new_confirm_webauthn).as_obj(),
 
     /// def show_error(
     ///     *,

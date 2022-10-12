@@ -159,6 +159,18 @@ def confirm_modify_fee(
 
 
 # rust/src/ui/model_tt/layout.rs
+def confirm_webauthn(
+    *,
+    title: str,
+    pages: Iterable[tuple[str, str]],
+    icon: str | None,
+) -> int | object:
+    """Webauthn confirmation.
+    Returns page index in case of confirmation and CANCELLED otherwise.
+    """
+
+
+# rust/src/ui/model_tt/layout.rs
 def show_error(
     *,
     title: str,

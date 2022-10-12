@@ -859,6 +859,7 @@ class Fido2ConfirmGetAssertion(Fido2State, ConfirmInfo, Pageable):
         self._resident = resident
         self._user_verification = user_verification
         self.load_icon(self._creds[0].rp_id_hash)
+        self.chosen_page: int | None = None
 
     def get_header(self) -> str:
         return "FIDO2 Authenticate"
@@ -873,8 +874,13 @@ class Fido2ConfirmGetAssertion(Fido2State, ConfirmInfo, Pageable):
         return len(self._creds)
 
     async def confirm_dialog(self) -> bool:
-        if not await confirm_webauthn(None, self, pageable=self):
+        from trezor.ui.layouts.webauthn import confirm_webauthn_choose
+
+        # There is a choice from more than one credential.
+        index_or_none = await confirm_webauthn_choose(None, self, pageable=self)
+        if index_or_none is None:
             return False
+        self.chosen_page = index_or_none
         if self._user_verification:
             return await verify_user(KeepaliveCallback(self.cid, self.iface))
         return True
@@ -882,7 +888,8 @@ class Fido2ConfirmGetAssertion(Fido2State, ConfirmInfo, Pageable):
     async def on_confirm(self) -> None:
         cid = self.cid  # local_cache_attribute
 
-        cred = self._creds[self.page()]
+        assert self.chosen_page is not None
+        cred = self._creds[self.chosen_page]
         try:
             send_cmd_sync(cmd_keepalive(cid, _KEEPALIVE_STATUS_PROCESSING), self.iface)
             response_data = cbor_get_assertion_sign(

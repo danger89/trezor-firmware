@@ -8,6 +8,8 @@ mod number_input;
 mod page;
 mod scroll;
 mod swipe;
+mod webauthn;
+mod webauthn_icons;
 
 pub use button::{
     Button, ButtonContent, ButtonMsg, ButtonStyle, ButtonStyleSheet, CancelConfirmMsg,
@@ -29,5 +31,6 @@ pub use number_input::{NumberInputDialog, NumberInputDialogMsg};
 pub use page::{SwipeHoldPage, SwipePage};
 pub use scroll::ScrollBar;
 pub use swipe::{Swipe, SwipeDirection};
+pub use webauthn::{FidoMsg, FidoPage, FidoPaginatedPage};
 
 use super::theme;

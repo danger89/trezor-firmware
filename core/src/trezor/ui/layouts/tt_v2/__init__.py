@@ -23,6 +23,10 @@ INFO = trezorui2.INFO  # global_import_cache
 BR_TYPE_OTHER = ButtonRequestType.Other  # global_import_cache
 
 
+def is_confirmed(x: Any) -> bool:
+    return x is CONFIRMED
+
+
 class _RustLayout(ui.Layout):
     # pylint: disable=super-init-not-called
     def __init__(self, layout: Any, is_backup: bool = False):
@@ -171,7 +175,7 @@ class _RustLayout(ui.Layout):
 
 async def raise_if_not_confirmed(a: Awaitable[T], exc: Any = ActionCancelled) -> T:
     result = await a
-    if result is not trezorui2.CONFIRMED:
+    if not is_confirmed(result):
         raise exc
     return result
 
@@ -269,7 +273,7 @@ async def confirm_backup(ctx: GenericContext) -> bool:
         "backup_device",
         ButtonRequestType.ResetDevice,
     )
-    if result is CONFIRMED:
+    if is_confirmed(result):
         return True
 
     result = await interact(
@@ -286,7 +290,7 @@ async def confirm_backup(ctx: GenericContext) -> bool:
         "backup_device",
         ButtonRequestType.ResetDevice,
     )
-    return result is CONFIRMED
+    return is_confirmed(result)
 
 
 async def confirm_path_warning(
@@ -358,7 +362,7 @@ async def show_address(
             "show_address",
             ButtonRequestType.Address,
         )
-        if result is CONFIRMED:
+        if is_confirmed(result):
             break
 
         result = await interact(
@@ -374,7 +378,7 @@ async def show_address(
             "show_qr",
             ButtonRequestType.Address,
         )
-        if result is CONFIRMED:
+        if is_confirmed(result):
             break
 
         if is_multisig:
@@ -388,7 +392,7 @@ async def show_address(
                     "show_xpub",
                     ButtonRequestType.PublicKey,
                 )
-                if result is CONFIRMED:
+                if is_confirmed(result):
                     return
 
 
@@ -761,7 +765,7 @@ async def confirm_properties(
         br_type,
         br_code,
     )
-    if result is not trezorui2.CONFIRMED:
+    if not is_confirmed(result):
         raise ActionCancelled
 
 
