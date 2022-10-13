@@ -1,3 +1,4 @@
+# pyright: reportGeneralTypeIssues=false
 import gc
 
 if __debug__:
