@@ -1,7 +1,5 @@
 use core::{cmp::Ordering, convert::TryInto, ops::Deref};
 
-use heapless::Vec;
-
 use crate::{
     error::Error,
     micropython::{
@@ -312,24 +310,19 @@ extern "C" fn new_confirm_action(n_args: usize, args: *const Obj, kwargs: *mut M
 
 fn _confirm_blob(
     title: StrBuffer,
-    data: Option<StrBuffer>,
-    description: Option<StrBuffer>,
-    extra: Option<StrBuffer>,
+    data: Obj,
+    description: Obj,
+    extra: Obj,
     verb: Option<StrBuffer>,
     verb_cancel: Option<StrBuffer>,
     hold: bool,
 ) -> Result<Obj, Error> {
-    let mut par_source: Vec<Paragraph<StrBuffer>, 3> = Vec::new();
-    if let Some(description) = description {
-        unwrap!(par_source.push(Paragraph::new(&theme::TEXT_NORMAL, description)));
-    }
-    if let Some(extra) = extra {
-        unwrap!(par_source.push(Paragraph::new(&theme::TEXT_BOLD, extra)));
-    }
-    if let Some(data) = data {
-        unwrap!(par_source.push(Paragraph::new(&theme::TEXT_MONO, data)));
-    }
-    let paragraphs = Paragraphs::new(par_source);
+    let paragraphs = [
+        Paragraph::new(&theme::TEXT_NORMAL, description),
+        Paragraph::new(&theme::TEXT_BOLD, extra),
+        Paragraph::new(&theme::TEXT_MONO, data),
+    ]
+    .into_paragraphs();
 
     let obj = if hold {
         LayoutObj::new(Frame::new(title, SwipeHoldPage::new(paragraphs, theme::BG)).into_child())?
@@ -347,10 +340,9 @@ fn _confirm_blob(
 extern "C" fn new_confirm_blob(n_args: usize, args: *const Obj, kwargs: *mut Map) -> Obj {
     let block = move |_args: &[Obj], kwargs: &Map| {
         let title: StrBuffer = kwargs.get(Qstr::MP_QSTR_title)?.try_into()?;
-        let data: StrBuffer = kwargs.get(Qstr::MP_QSTR_data)?.try_into()?;
-        let description: StrBuffer =
-            kwargs.get_or(Qstr::MP_QSTR_description, StrBuffer::empty())?;
-        let extra: StrBuffer = kwargs.get_or(Qstr::MP_QSTR_extra, StrBuffer::empty())?;
+        let data: Obj = kwargs.get(Qstr::MP_QSTR_data)?;
+        let description: Obj = kwargs.get(Qstr::MP_QSTR_description)?;
+        let extra: Obj = kwargs.get(Qstr::MP_QSTR_extra)?;
         let verb_cancel: Option<StrBuffer> = kwargs
             .get(Qstr::MP_QSTR_verb_cancel)
             .unwrap_or_else(|_| Obj::const_none())
@@ -362,9 +354,9 @@ extern "C" fn new_confirm_blob(n_args: usize, args: *const Obj, kwargs: *mut Map
 
         _confirm_blob(
             title,
-            Some(data),
-            Some(description),
-            Some(extra),
+            data,
+            description,
+            extra,
             Some(verb),
             verb_cancel,
             hold,
@@ -384,19 +376,18 @@ extern "C" fn new_confirm_properties(n_args: usize, args: *const Obj, kwargs: *m
         let mut iter_buf = IterBuf::new();
         let iter = Iter::try_from_obj_with_buf(items, &mut iter_buf)?;
         for para in iter {
-            let [key, value, is_mono]: [Obj; 3] = iter_into_objs(para)?;
-            let key = key.try_into_option::<StrBuffer>()?;
-            let value = value.try_into_option::<StrBuffer>()?;
+            let [key, value]: [Obj; 2] = iter_into_objs(para)?;
 
-            if let Some(key) = key {
-                if value.is_some() {
+            if key != Obj::const_none() {
+                if value != Obj::const_none() {
                     paragraphs.add(Paragraph::new(&theme::TEXT_BOLD, key).no_break());
                 } else {
                     paragraphs.add(Paragraph::new(&theme::TEXT_BOLD, key));
                 }
             }
-            if let Some(value) = value {
-                if is_mono.try_into()? {
+
+            if value != Obj::const_none() {
+                if value.is_type_bytes() {
                     paragraphs.add(Paragraph::new(&theme::TEXT_MONO, value));
                 } else {
                     paragraphs.add(Paragraph::new(&theme::TEXT_NORMAL, value));
@@ -481,8 +472,8 @@ extern "C" fn new_show_qr(n_args: usize, args: *const Obj, kwargs: *mut Map) -> 
 extern "C" fn new_confirm_value(n_args: usize, args: *const Obj, kwargs: *mut Map) -> Obj {
     let block = move |_args: &[Obj], kwargs: &Map| {
         let title: StrBuffer = kwargs.get(Qstr::MP_QSTR_title)?.try_into()?;
-        let description: StrBuffer = kwargs.get(Qstr::MP_QSTR_description)?.try_into()?;
-        let value: StrBuffer = kwargs.get(Qstr::MP_QSTR_value)?.try_into()?;
+        let description: Obj = kwargs.get(Qstr::MP_QSTR_description)?;
+        let value: Obj = kwargs.get(Qstr::MP_QSTR_value)?;
 
         let verb: Option<StrBuffer> = kwargs
             .get(Qstr::MP_QSTR_verb)
@@ -492,9 +483,9 @@ extern "C" fn new_confirm_value(n_args: usize, args: *const Obj, kwargs: *mut Ma
 
         _confirm_blob(
             title,
-            Some(value),
-            Some(description),
-            None,
+            value,
+            description,
+            Obj::const_none(),
             verb,
             None,
             hold,
@@ -1121,9 +1112,9 @@ pub static mp_module_trezorui2: Module = obj_module! {
     /// def confirm_blob(
     ///     *,
     ///     title: str,
-    ///     data: str,
-    ///     description: str = "",
-    ///     extra: str = "",
+    ///     data: str | bytes,
+    ///     description: str | None,
+    ///     extra: str | None,
     ///     verb_cancel: str | None = None,
     ///     ask_pagination: bool = False,
     ///     hold: bool = False,
@@ -1134,7 +1125,7 @@ pub static mp_module_trezorui2: Module = obj_module! {
     /// def confirm_properties(
     ///     *,
     ///     title: str,
-    ///     items: Iterable[Tuple[str | None, str | None, bool]],
+    ///     items: Iterable[Tuple[str | bytes | None, str | bytes | None]],
     ///     hold: bool = False,
     /// ) -> object:
     ///     """Confirm list of key-value pairs. The third component in the tuple should be True if

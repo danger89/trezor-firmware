@@ -1,10 +1,13 @@
 use crate::{
     error::Error,
     micropython::{
+        buffer::{get_buffer, StrBuffer},
         iter::{Iter, IterBuf},
         obj::Obj,
     },
+    ui::component::text::paragraphs::{Paragraph, ParagraphSource, VecExt},
 };
+use core::str;
 use cstr_core::cstr;
 use heapless::Vec;
 
@@ -31,4 +34,99 @@ where
     }
     // Returns error if array.len() != N
     vec.into_array().map_err(|_| err)
+}
+
+fn objslice_at<'a>(
+    objslice: &'a [Paragraph<Obj>],
+    index: usize,
+    offset: usize,
+    buffer: &'a mut [u8],
+) -> Paragraph<&'a str> {
+    const HEX_LOWER: [u8; 16] = *b"0123456789abcdef";
+    let par = &objslice[index];
+
+    // Handle None as empty string.
+    if par.content() == Obj::const_none() {
+        return par.with_content("");
+    }
+
+    // Handle str.
+    if StrBuffer::try_from(par.content()).is_ok() {
+        // SAFETY:
+        // (a) only immutable references are taken
+        // (b) micropython guarantees immutability and the buffer is not freed/moved as
+        //     long as self is managed by GC
+        let buffer = unsafe { get_buffer(par.content()) };
+        if let Ok(buffer) = buffer {
+            // SAFETY: validation was already performed in StrBuffer::try_from above.
+            let s = unsafe { str::from_utf8_unchecked(buffer) };
+            return par.with_content(&s[offset..]);
+        } else {
+            return par.with_content("ERROR");
+        }
+    }
+
+    // Handling bytes from now on.
+    if !par.content().is_type_bytes() {
+        return par.with_content("ERROR");
+    }
+
+    // Convert offset to byte representation, handle case where it points in the
+    // middle of a byte.
+    let bin_off = offset / 2;
+    let hex_off = offset % 2;
+
+    // SAFETY:
+    // (a) only immutable references are taken
+    // (b) reference is discarded before returning to micropython
+    let bin_slice = if let Ok(buf) = unsafe { get_buffer(par.content()) } {
+        &buf[bin_off..]
+    } else {
+        return par.with_content("ERROR");
+    };
+    let mut i: usize = 0;
+    for b in bin_slice.iter().take(buffer.len() / 2) {
+        let hi: usize = ((b & 0xf0) >> 4).into();
+        let lo: usize = (b & 0x0f).into();
+        buffer[i] = HEX_LOWER[hi];
+        buffer[i + 1] = HEX_LOWER[lo];
+        i += 2;
+    }
+
+    // SAFETY: only <0x7f bytes are used to construct the string
+    let result = unsafe { str::from_utf8_unchecked(&buffer[0..i]) };
+    par.with_content(&result[hex_off..])
+}
+
+impl<const N: usize> ParagraphSource for [Paragraph<Obj>; N] {
+    fn at<'a>(&'a self, index: usize, offset: usize, buffer: &'a mut [u8]) -> Paragraph<&'a str> {
+        objslice_at(self.as_slice(), index, offset, buffer)
+    }
+
+    fn size(&self) -> usize {
+        N
+    }
+}
+
+impl<const N: usize> ParagraphSource for Vec<Paragraph<Obj>, N> {
+    fn at<'a>(&'a self, index: usize, offset: usize, buffer: &'a mut [u8]) -> Paragraph<&'a str> {
+        objslice_at(self, index, offset, buffer)
+    }
+
+    fn size(&self) -> usize {
+        self.len()
+    }
+}
+
+impl<const N: usize> VecExt<Obj> for Vec<Paragraph<Obj>, N> {
+    fn add(&mut self, paragraph: Paragraph<Obj>) -> &mut Self {
+        if paragraph.content() == Obj::const_none() {
+            return self;
+        }
+        if self.push(paragraph).is_err() {
+            #[cfg(feature = "ui_debug")]
+            panic!("paragraph list is full");
+        }
+        self
+    }
 }

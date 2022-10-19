@@ -1,5 +1,4 @@
 from typing import TYPE_CHECKING
-from ubinascii import hexlify
 
 from trezor import io, log, loop, ui, wire, workflow
 from trezor.enums import ButtonRequestType
@@ -304,6 +303,8 @@ def _show_xpub(xpub: str, title: str, cancel: str) -> ui.Layout:
             title=title,
             data=xpub,
             verb_cancel=cancel,
+            extra=None,
+            description=None,
         )
     )
     return content
@@ -604,9 +605,6 @@ async def confirm_blob(
     icon_color: int = ui.GREEN,  # TODO cleanup @ redesign
     ask_pagination: bool = False,
 ) -> None:
-    if isinstance(data, bytes):
-        data = hexlify(data).decode()
-
     await raise_if_not_confirmed(
         interact(
             ctx,
@@ -615,6 +613,7 @@ async def confirm_blob(
                     title=title.upper(),
                     description=description or "",
                     data=data,
+                    extra=None,
                     ask_pagination=ask_pagination,
                     hold=hold,
                 )
@@ -732,18 +731,12 @@ async def confirm_properties(
     hold: bool = False,
     br_code: ButtonRequestType = ButtonRequestType.ConfirmOutput,
 ) -> None:
-    def handle_bytes(prop):
-        if isinstance(prop[1], bytes):
-            return (prop[0], hexlify(prop[1]).decode(), True)
-        else:
-            return (prop[0], prop[1], False)
-
     result = await interact(
         ctx,
         _RustLayout(
             trezorui2.confirm_properties(
                 title=title.upper(),
-                items=map(handle_bytes, props),
+                items=props,
                 hold=hold,
             )
         ),
