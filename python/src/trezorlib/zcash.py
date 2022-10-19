@@ -14,19 +14,23 @@
 # You should have received a copy of the License along with this library.
 # If not, see <https://www.gnu.org/licenses/lgpl-3.0.html>.
 
+from typing import TYPE_CHECKING
 from . import exceptions, messages
 from .messages import ZcashSignatureType as SigType
 from .tools import expect
 
+if TYPE_CHECKING:
+    from typing import Generator
+    from .client import TrezorClient
+
 
 @expect(messages.ZcashFullViewingKey, field="fvk")
-def get_fvk(client, z_address_n, coin_name="Zcash",):
+def get_fvk(client: TrezorClient, z_address_n: list[int], coin_name: str = "Zcash") -> str:
     """
-    Returns raw Zcash Orchard Full Viewing Key encoded as:
-
+    Returns Zcash Orchard Full Viewing Key in hexadecimal representation.
+    Acording to the https://zips.z.cash/protocol/protocol.pdf § 5.6.4.4
+    key components are chained in the following order
     ak (32 bytes) || nk (32 bytes) || rivk (32 bytes)
-
-    acording to the https://zips.z.cash/protocol/protocol.pdf § 5.6.4.4
     """
     return client.call(
         messages.ZcashGetFullViewingKey(
@@ -37,13 +41,12 @@ def get_fvk(client, z_address_n, coin_name="Zcash",):
 
 
 @expect(messages.ZcashIncomingViewingKey, field="ivk")
-def get_ivk(client, z_address_n, coin_name = "Zcash",):
+def get_ivk(client: TrezorClient, z_address_n: list[int], coin_name: str = "Zcash") -> str:
     """
-    Returns raw Zcash Orchard Incoming Viewing Key encoded as:
-
+    Returns Zcash Orchard Incoming Viewing Key in hexadecimal representation.
+    Acording to the https://zips.z.cash/protocol/protocol.pdf § 5.6.4.3
+    key components are chained in the following order
     dk (32 bytes) || ivk (32 bytes)
-
-    acording to the https://zips.z.cash/protocol/protocol.pdf § 5.6.4.3
     """
     return client.call(
         messages.ZcashGetIncomingViewingKey(
@@ -56,19 +59,19 @@ def get_ivk(client, z_address_n, coin_name = "Zcash",):
 @expect(messages.ZcashAddress, field="address")
 def get_address(
     client,
-    t_address_n=[],
-    z_address_n=[],
-    diversifier_index=0,
-    show_display=False,
-    coin_name = "Zcash",
+    t_address_n: list[int] | None = None,
+    z_address_n: list[int] | None = None,
+    diversifier_index: int = 0,
+    show_display: bool = False,
+    coin_name: str = "Zcash",
 ):
     """
     Returns a Zcash address.
     """
     return client.call(
         messages.ZcashGetAddress(
-            t_address_n=t_address_n,
-            z_address_n=z_address_n,
+            t_address_n=t_address_n or [],
+            z_address_n=z_address_n or [],
             diversifier_index=diversifier_index,
             show_display=show_display,
             coin_name=coin_name,
@@ -81,21 +84,59 @@ EMPTY_ANCHOR = bytes.fromhex("ae2935f1dfd8a24aed7c70df7de3a668eb7a49b1319880dde2
 
 def sign_tx(
     client,
-    t_inputs=[],
-    t_outputs=[],
-    o_inputs=[],
-    o_outputs=[],
-    coin_name="Zcash",
-    version_group_id=0x26A7270A,  # protocol spec §7.1.2
-    branch_id=0xC2D6D0B4,  # https://zips.z.cash/zip-0252
-    expiry=0,
-    account=0,
-    anchor=EMPTY_ANCHOR,
-    verbose=False,
-):
+    inputs: list[messages.TxInput | messages.ZcashOrchardInput],
+    outputs: list[messages.TxOutput | messages.ZcashOrchardOutput],
+    coin_name: str = "Zcash",
+    version_group_id: int = 0x26A7270A,  # protocol spec §7.1.2
+    branch_id: int = 0xC2D6D0B4,  # https://zips.z.cash/zip-0252
+    expiry: int = 0,
+    account: int = 0,
+    anchor: bytes = EMPTY_ANCHOR,
+    verbose: bool = False,
+) -> Generator[None, bytes, (dict[int, bytes], bytes)]:
+    """
+    Sign a Zcash transaction.
+
+    Parameters:
+    -----------
+    inputs: transaction inputs
+    outputs: transaction outputs
+    coin_name: coin name (currently "Zcash" or "Zcash Testnet")
+    version_group_id: 0x26A7270A by default
+    branch_id: 0xC2D6D0B4 by default
+    expiry: 0 by default
+    account: account number, from which is spent
+        third digit of ZIP-32 path. 0 by default
+    anchor: Orchard anchor
+    verbose: log protocol transctiption into stdout
+
+    Example:
+    --------
+    protocol = zcash.sign_tx(
+        inputs=[
+            TxInput(...)
+        ],
+        outputs=[
+            TxOutput(...),
+            ZcashOrchardOutput(...),
+        ]
+        anchor=bytes.fromhex(...),
+        verbose=True,
+    )
+    shielding_seed = next(protocol)
+    ... # run Orchard prover in parallel here
+    sighash = next(protocol)
+    signatures, serialized_tx = next(protocol)
+    """
+
     def log(*args, **kwargs):
         if verbose:
             print(*args, **kwargs)
+
+    t_inputs = [x for x in inputs if isinstance(x, messages.TxInput)]
+    t_outputs = [x for x in outputs if isinstance(x, messages.TxOutput)]
+    o_inputs = [x for x in inputs if isinstance(x, messages.ZcashOrchardInput)]
+    o_outputs = [x for x in outputs if isinstance(x, messages.ZcashOrchardOutput)]
 
     msg = messages.SignTx(
         inputs_count=len(t_inputs),
@@ -109,7 +150,6 @@ def sign_tx(
         orchard_outputs_count=len(o_outputs),
         orchard_anchor=anchor,
         account=account,
-
     )
 
     actions_count = (
@@ -124,7 +164,7 @@ def sign_tx(
         SigType.ORCHARD_SPEND_AUTH:  dict(),
     }
 
-    print("T <- sign tx")
+    log("T <- sign tx")
     res = client.call(msg)
 
     R = messages.RequestType
