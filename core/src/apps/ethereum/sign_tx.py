@@ -9,7 +9,7 @@ from trezor.utils import HashWriter
 
 from apps.common import paths
 
-from . import definitions, tokens
+from . import tokens
 from .helpers import bytes_from_address
 from .keychain import with_keychain_from_chain_id_and_defs
 from .layout import (
@@ -23,6 +23,7 @@ if TYPE_CHECKING:
     from apps.common.keychain import Keychain
     from trezor.messages import EthereumTokenInfo
 
+    from .definitions import Definitions
     from .keychain import MsgInKeychainChainIdDefs
 
 
@@ -37,15 +38,13 @@ async def sign_tx(
     ctx: wire.Context,
     msg: EthereumSignTx,
     keychain: Keychain,
-    defs: definitions.Definitions,
+    defs: Definitions,
 ) -> EthereumTxRequest:
     check(msg)
     await paths.validate_path(ctx, keychain, msg.address_n)
 
     # Handle ERC20s
-    token, address_bytes, recipient, value = await handle_erc20(
-        ctx, msg, defs.tokens
-    )
+    token, address_bytes, recipient, value = await handle_erc20(ctx, msg, defs)
 
     data_total = msg.data_length
 
@@ -102,7 +101,7 @@ async def sign_tx(
 async def handle_erc20(
     ctx: wire.Context,
     msg: MsgInKeychainChainIdDefs,  # type: ignore [TypeVar "MsgInKeychainChainIdDefs" appears only once in generic function signature]
-    token_dict: dict[bytes, EthereumTokenInfo],
+    definitions: Definitions,
 ) -> tuple[EthereumTokenInfo | None, bytes, bytes, int]:
     token = None
     address_bytes = recipient = bytes_from_address(msg.to)
@@ -115,7 +114,7 @@ async def handle_erc20(
         and msg.data_initial_chunk[:16]
         == b"\xa9\x05\x9c\xbb\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
     ):
-        token = token_dict.get(address_bytes, tokens.UNKNOWN_TOKEN)
+        token = definitions.get_token(address_bytes)
         recipient = msg.data_initial_chunk[16:36]
         value = int.from_bytes(msg.data_initial_chunk[36:68], "big")
 

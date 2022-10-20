@@ -13,7 +13,7 @@ UNKNOWN_TOKEN = EthereumTokenInfo(
 )
 
 
-def token_by_chain_address(chain_id: int, address: bytes) -> EthereumTokenInfo:
+def token_by_chain_address(chain_id: int, address: bytes) -> EthereumTokenInfo | None:
     if chain_id == 1:  # eth
         if address == b"\x7f\xc6\x65\x00\xc8\x4a\x76\xad\x7e\x9c\x93\x43\x7b\xfc\x5a\xc3\x3e\x2d\xda\xe9":
             return EthereumTokenInfo(
@@ -225,4 +225,4 @@ def token_by_chain_address(chain_id: int, address: bytes) -> EthereumTokenInfo:
                 chain_id=chain_id,
                 name="Cosmos Hub",
             )
-    return UNKNOWN_TOKEN
+    return None

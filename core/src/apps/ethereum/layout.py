@@ -17,7 +17,6 @@ from trezor.ui.layouts import (
 )
 from trezor.ui.layouts.altcoin import confirm_total_ethereum
 
-from . import networks
 from .helpers import address_from_bytes, decode_typed_data, get_type_name
 
 if TYPE_CHECKING:
@@ -32,7 +31,7 @@ def require_confirm_tx(
     ctx: Context,
     to_bytes: bytes,
     value: int,
-    network: EthereumNetworkInfo | None,
+    network: EthereumNetworkInfo,
     token: EthereumTokenInfo | None,
 ) -> Awaitable[None]:
     if to_bytes:
@@ -54,7 +53,7 @@ def require_confirm_fee(
     spending: int,
     gas_price: int,
     gas_limit: int,
-    network: EthereumNetworkInfo | None,
+    network: EthereumNetworkInfo,
     token: EthereumTokenInfo | None,
 ) -> Awaitable[None]:
     return confirm_total_ethereum(
@@ -71,7 +70,7 @@ async def require_confirm_eip1559_fee(
     max_priority_fee: int,
     max_gas_fee: int,
     gas_limit: int,
-    network: EthereumNetworkInfo | None,
+    network: EthereumNetworkInfo,
     token: EthereumTokenInfo | None,
 ) -> None:
     await confirm_amount(
@@ -242,16 +241,13 @@ async def confirm_typed_value(
 def format_ethereum_amount(
     value: int,
     token: EthereumTokenInfo | None,
-    network_info: EthereumNetworkInfo | None,
+    network: EthereumNetworkInfo,
 ) -> str:
     if token:
         suffix = token.symbol
         decimals = token.decimals
     else:
-        if network_info is not None:
-            suffix = network_info.shortcut
-        else:
-            suffix = networks.UNKNOWN_NETWORK_SHORTCUT
+        suffix = network.shortcut
         decimals = 18
 
     # Don't want to display wei values for tokens with small decimal numbers

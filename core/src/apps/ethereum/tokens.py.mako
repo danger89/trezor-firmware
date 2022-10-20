@@ -22,7 +22,7 @@ UNKNOWN_TOKEN = EthereumTokenInfo(
 )
 
 
-def token_by_chain_address(chain_id: int, address: bytes) -> EthereumTokenInfo:
+def token_by_chain_address(chain_id: int, address: bytes) -> EthereumTokenInfo | None:
 % for token_chain_id, tokens in group_tokens(supported_on("trezor2", erc20)).items():
     if chain_id == ${token_chain_id}:  # ${tokens[0].chain}
         % for t in tokens:
@@ -36,4 +36,4 @@ def token_by_chain_address(chain_id: int, address: bytes) -> EthereumTokenInfo:
             )
         % endfor
 % endfor
-    return UNKNOWN_TOKEN
+    return None
