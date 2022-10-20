@@ -7,7 +7,7 @@ use crate::{
         display,
         layout::native::RustLayout,
         model::{
-            component::{LockScreen, PinKeyboard, PinKeyboardMsg},
+            component::{PinKeyboard, PinKeyboardMsg},
             pin::show_pin_timeout,
         },
     },
@@ -19,7 +19,7 @@ use crate::sdsalt::sd_card;
 #[cfg(all(feature = "ui_debug", not(feature = "emulator")))]
 use crate::trezorhal::storage::wipe;
 use crate::{
-    storage::{get_avatar, get_device_name, get_rotation, get_sd_salt_auth_key, init_unlocked},
+    storage::{get_device_name, get_rotation, get_sd_salt_auth_key, init_unlocked},
     trezorhal::storage::set_pin_delay_callback,
 };
 
@@ -30,6 +30,7 @@ pub enum BootState {
 
 #[cfg(not(feature = "sdcard"))]
 use crate::trezorhal::storage::ExternalSalt;
+use crate::ui::model::component::Lockscreen;
 
 #[cfg(not(feature = "sdcard"))]
 fn sd_card(_: &[u8]) -> Option<ExternalSalt> {
@@ -57,14 +58,7 @@ pub fn boot_workflow() {
 
     display::set_orientation(rotation as _);
 
-    let avatar = get_avatar();
-
-    let mut homescreen = RustLayout::new(LockScreen::new(
-        device_name.as_str(),
-        avatar,
-        Some("Not connected"),
-        Some("Tap to connect"),
-    ));
+    let mut homescreen = RustLayout::new(Lockscreen::new(device_name.as_str(), true));
 
     let mut sd_salt = None;
 
@@ -76,12 +70,8 @@ pub fn boot_workflow() {
                     if let Some(key) = sd_salt_auth_key.as_ref() {
                         let res = sd_card(key.as_slice());
                         if res.is_none() {
-                            homescreen = RustLayout::new(LockScreen::new(
-                                device_name.as_str(),
-                                avatar,
-                                Some("Not connected"),
-                                Some("Tap to connect"),
-                            ));
+                            homescreen =
+                                RustLayout::new(Lockscreen::new(device_name.as_str(), true));
                             continue;
                         }
                         sd_salt = res;
@@ -116,12 +106,8 @@ pub fn boot_workflow() {
                                 }
                             }
                             PinKeyboardMsg::Cancelled => {
-                                homescreen = RustLayout::new(LockScreen::new(
-                                    device_name.as_str(),
-                                    avatar,
-                                    Some("Not connected"),
-                                    Some("Tap to connect"),
-                                ));
+                                homescreen =
+                                    RustLayout::new(Lockscreen::new(device_name.as_str(), true));
                             }
                         }
                     } else {
@@ -158,12 +144,7 @@ pub fn boot_workflow() {
                         }
                     }
                     PinKeyboardMsg::Cancelled => {
-                        homescreen = RustLayout::new(LockScreen::new(
-                            device_name.as_str(),
-                            avatar,
-                            Some("Not connected"),
-                            Some("Tap to connect"),
-                        ));
+                        homescreen = RustLayout::new(Lockscreen::new(device_name.as_str(), true));
                         state = BootState::NotConnected;
                         break;
                     }

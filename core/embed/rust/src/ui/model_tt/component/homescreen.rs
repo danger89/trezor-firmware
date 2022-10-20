@@ -189,7 +189,7 @@ where
             let notification = self.get_notification();
 
             homescreen(
-                get_image(),
+                get_image(false),
                 texts,
                 notification,
                 self.paint_notification_only,
@@ -270,12 +270,12 @@ where
             None,
         ],));
 
-        homescreen(get_image(), texts, None, false);
+        homescreen(get_image(self.bootscreen), texts, None, false);
     }
 }
 
-fn get_image() -> &'static [u8] {
-    if let Ok(data) = get_avatar() {
+fn get_image(bootscreen: bool) -> &'static [u8] {
+    if let Ok(data) = get_avatar(bootscreen) {
         data
     } else {
         IMAGE_HOMESCREEN

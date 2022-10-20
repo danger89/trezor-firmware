@@ -1,11 +1,14 @@
-use crate::trezorhal::{
-    alloc::alloc_only,
-    random,
-    storage::{delete, get, get_length, set, set_counter},
+use crate::{
+    micropython::ffi,
+    trezorhal::{
+        alloc::alloc_only,
+        random,
+        storage::{delete, get, get_length, set, set_counter},
+    },
 };
+use core::slice;
 use cstr_core::CStr;
 use heapless::{String, Vec};
-use core::slice;
 
 const STORAGE_VERSION_01: u8 = 1;
 const STORAGE_VERSION_02: u8 = 2;
@@ -92,7 +95,7 @@ pub fn migrate_from_version_01() {
 
         unwrap!(set_counter(FLAG_WRITE | U2F_COUNTER, counter));
         // Delete the old, non-public U2F_COUNTER.
-        delete(U2F_COUNTER_PRIVATE);
+        unwrap!(delete(U2F_COUNTER_PRIVATE));
     }
     unwrap!(set(VERSION, &[STORAGE_VERSION_CURRENT; 1]));
 }
@@ -117,13 +120,16 @@ pub fn init_unlocked() {
     }
 }
 
-pub fn get_avatar() -> Result<&'static mut [u8], ()> {
+pub fn get_avatar(no_mpy: bool) -> Result<&'static mut [u8], ()> {
     let avatar_len_res = get_length(HOMESCREEN);
 
     return if let Ok(len) = avatar_len_res {
-        let data_ptr_raw = unsafe { ffi::gc_alloc(len, 0) };
-        let buffer = unsafe { slice::from_raw_parts_mut(data_ptr_raw as _, len) };
-
+        let buffer = if no_mpy {
+            alloc_only(len)
+        } else {
+            let data_ptr_raw = unsafe { ffi::gc_alloc(len, 0) };
+            unsafe { slice::from_raw_parts_mut(data_ptr_raw as _, len) }
+        };
         if len <= buffer.len() {
             unwrap!(get(HOMESCREEN, buffer));
             Ok(&mut buffer[..len])

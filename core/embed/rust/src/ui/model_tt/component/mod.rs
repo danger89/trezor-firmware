@@ -6,7 +6,6 @@ mod homescreen;
 mod hs_render;
 mod keyboard;
 mod loader;
-mod lockscreen;
 mod number_input;
 mod page;
 mod scroll;
@@ -29,7 +28,6 @@ pub use keyboard::{
     word_count::{SelectWordCount, SelectWordCountMsg},
 };
 pub use loader::{Loader, LoaderMsg, LoaderStyle, LoaderStyleSheet};
-pub use lockscreen::{LockScreen, LockScreenMsg};
 pub use number_input::{NumberInputDialog, NumberInputDialogMsg};
 pub use page::{SwipeHoldPage, SwipePage};
 pub use scroll::ScrollBar;
