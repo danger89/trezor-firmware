@@ -7,7 +7,6 @@ if TYPE_CHECKING:
 
 async def wipe_device(ctx: GenericContext, msg: WipeDevice) -> Success:
     import storage
-    from trezor import ui
     from trezor.enums import ButtonRequestType
     from trezor.messages import Success
     from trezor.ui.layouts import confirm_action
@@ -23,9 +22,6 @@ async def wipe_device(ctx: GenericContext, msg: WipeDevice) -> Success:
         reverse=True,
         verb="Hold to confirm",
         hold=True,
-        hold_danger=True,
-        icon=ui.ICON_WIPE,
-        icon_color=ui.RED,
         br_code=ButtonRequestType.WipeDevice,
     )
 

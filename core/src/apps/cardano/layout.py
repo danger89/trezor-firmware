@@ -192,10 +192,7 @@ async def show_tx_init(ctx: Context, title: str) -> bool:
             (ui.NORMAL, "Choose level of details:"),
         ),
         "Show All",
-        icon=ui.ICON_SEND,
-        icon_color=ui.GREEN,
         confirm="Show Simple",
-        major_confirm=True,
     )
 
     return should_show_details
@@ -221,26 +218,25 @@ async def confirm_sending(
     output_type: Literal["address", "change", "collateral-return"],
     network_id: int,
 ) -> None:
-    if output_type == "address":
-        message = "Confirm sending"
-    elif output_type == "change":
-        message = "Change amount"
-    elif output_type == "collateral-return":
-        message = "Collateral return"
-    else:
-        raise RuntimeError  # should be unreachable
+    # if output_type == "address":
+    #     message = "Confirm sending"
+    # elif output_type == "change":
+    #     message = "Change amount"
+    # elif output_type == "collateral-return":
+    #     message = "Collateral return"
+    # else:
+    #     raise RuntimeError  # should be unreachable
+
+    # TODO: how to display the message in `confirm_output`?
+    # could implement the subtitle theoretically
 
     await layouts.confirm_output(
         ctx,
         to,
         format_coin_amount(ada_amount, network_id),
-        ui.BOLD,
         "Confirm transaction",
-        f"{message}:",
-        width_paginated=17,
-        to_str="\nto\n",
-        to_paginated=True,
-        br_code=BRT_Other,
+        # subtitle=f"{message}:",
+        ButtonRequestType.Other,
     )
 
 
@@ -403,20 +399,11 @@ async def _show_credential(
             )
         )
 
-    if credential.should_warn():
-        icon = ui.ICON_WRONG
-        icon_color = ui.RED
-    else:
-        icon = ui.ICON_SEND
-        icon_color = ui.GREEN
-
     await confirm_properties(
         ctx,
         "confirm_credential",
         title,
         props,
-        icon,
-        icon_color,
         br_code=BRT_Other,
     )
 
@@ -438,7 +425,6 @@ async def warn_tx_output_contains_tokens(
         "confirm_tokens",
         "Confirm transaction",
         content,
-        larger_vspace=True,
         br_code=BRT_Other,
     )
 
@@ -449,7 +435,6 @@ async def warn_tx_contains_mint(ctx: Context) -> None:
         "confirm_tokens",
         "Confirm transaction",
         "The transaction contains minting or burning of tokens.",
-        larger_vspace=True,
         br_code=BRT_Other,
     )
 
@@ -860,7 +845,6 @@ async def warn_tx_network_unverifiable(ctx: Context) -> None:
         "warning_no_outputs",
         "Warning",
         "Transaction has no outputs, network cannot be verified.",
-        larger_vspace=True,
         br_code=BRT_Other,
     )
 
