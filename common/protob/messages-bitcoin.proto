@@ -182,7 +182,7 @@ message VerifyMessage {
 /**
  * Request: Ask device to sign transaction
  * @start
- * @next uest
+ * @next TxRequest
  * @next Failure
  */
 message SignTx {
