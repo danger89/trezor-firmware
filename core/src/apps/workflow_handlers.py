@@ -183,9 +183,9 @@ def find_message_handler_module(msg_type: int) -> str:
 
     if utils.ZCASH_SHIELDED:  # zcash shielded
         if msg_type == MessageType.ZcashGetFullViewingKey:
-            return "apps.zcash.orchard.get_fvk"
+            return "apps.zcash.get_fvk"
         if msg_type == MessageType.ZcashGetIncomingViewingKey:
-            return "apps.zcash.orchard.get_ivk"
+            return "apps.zcash.get_ivk"
         if msg_type == MessageType.ZcashGetAddress:
             return "apps.zcash.get_address"
 

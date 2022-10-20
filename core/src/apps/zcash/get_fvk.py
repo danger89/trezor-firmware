@@ -7,12 +7,12 @@ from trezor.ui.layouts import confirm_action
 
 from apps.common import coininfo
 
-from ..unified import Typecode, encode_fvk
-from .keychain import with_keychain
+from .orchard.keychain import with_keychain
+from .unified import Typecode, encode_fvk
 
 if TYPE_CHECKING:
     from trezor.wire import Context
-    from .keychain import OrchardKeychain
+    from .orchard.keychain import OrchardKeychain
 
 
 @with_keychain

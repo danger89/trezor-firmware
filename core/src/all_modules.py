@@ -787,6 +787,10 @@ if not utils.BITCOIN_ONLY:
     import apps.zcash.f4jumble
     apps.zcash.get_address
     import apps.zcash.get_address
+    apps.zcash.get_fvk
+    import apps.zcash.get_fvk
+    apps.zcash.get_ivk
+    import apps.zcash.get_ivk
     apps.zcash.hasher
     import apps.zcash.hasher
     apps.zcash.layout
@@ -819,10 +823,6 @@ if not utils.BITCOIN_ONLY:
     import apps.zcash.orchard.crypto.utils
     apps.zcash.orchard.debug
     import apps.zcash.orchard.debug
-    apps.zcash.orchard.get_fvk
-    import apps.zcash.orchard.get_fvk
-    apps.zcash.orchard.get_ivk
-    import apps.zcash.orchard.get_ivk
     apps.zcash.orchard.keychain
     import apps.zcash.orchard.keychain
     apps.zcash.orchard.random
