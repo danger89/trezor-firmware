@@ -46,8 +46,7 @@ FIRMWARE_P1_MAXSIZE = 786432
 FIRMWARE_P2_MAXSIZE = 917504
 FIRMWARE_MAXSIZE    = 1703936
 
-#CFLAGS += -DSCM_REVISION='\"$(shell git rev-parse HEAD | sed 's:\(..\):\\x\1:g')\"'
-CFLAGS += -DSCM_REVISION='\"\x89\xfb\x6d\xa9\x11\x5e\x0b\x37\x4c\xea\x7f\x1c\xfa\xae\x2e\x20\x37\xdb\xdf\x92\"'
+CFLAGS += -DSCM_REVISION='\"$(shell git rev-parse HEAD | sed 's:\(..\):\\x\1:g')\"'
 
 TESTPATH = $(CURDIR)/../tests
 
