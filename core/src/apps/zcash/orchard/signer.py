@@ -11,7 +11,7 @@ from trezor.wire import DataError
 from apps.bitcoin.sign_tx import helpers
 from apps.common.paths import HARDENED
 
-from .. import unified_addresses
+from .. import unified
 from ..hasher import ZcashHasher
 from ..layout import ConfirmOrchardInputsCountOverThreshold
 from .accumulator import MessageAccumulator
@@ -229,8 +229,8 @@ class OrchardSigner:
             address = fvk.address(0)
         else:
             assert txo.address is not None  # typing
-            receivers = unified_addresses.decode(txo.address, self.coin)
-            address = receivers.get(unified_addresses.Typecode.ORCHARD)
+            receivers = unified.decode_address(txo.address, self.coin)
+            address = receivers.get(unified.Typecode.ORCHARD)
             if address is None:
                 raise DataError("Address has not an Orchard receiver.")
             address = Address.from_bytes(address)

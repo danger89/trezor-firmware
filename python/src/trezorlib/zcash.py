@@ -25,13 +25,8 @@ if TYPE_CHECKING:
 
 
 @expect(messages.ZcashFullViewingKey, field="fvk")
-def get_fvk(client: TrezorClient, z_address_n: list[int], coin_name: str = "Zcash") -> str:
-    """
-    Returns Zcash Orchard Full Viewing Key in hexadecimal representation.
-    Acording to the https://zips.z.cash/protocol/protocol.pdf § 5.6.4.4
-    key components are chained in the following order
-    ak (32 bytes) || nk (32 bytes) || rivk (32 bytes)
-    """
+def get_fvk(client: "TrezorClient", z_address_n: list[int], coin_name: str = "Zcash") -> str:
+    """Returns Zcash Unified Full Viewing Key."""
     return client.call(
         messages.ZcashGetFullViewingKey(
             z_address_n=z_address_n,
@@ -41,13 +36,8 @@ def get_fvk(client: TrezorClient, z_address_n: list[int], coin_name: str = "Zcas
 
 
 @expect(messages.ZcashIncomingViewingKey, field="ivk")
-def get_ivk(client: TrezorClient, z_address_n: list[int], coin_name: str = "Zcash") -> str:
-    """
-    Returns Zcash Orchard Incoming Viewing Key in hexadecimal representation.
-    Acording to the https://zips.z.cash/protocol/protocol.pdf § 5.6.4.3
-    key components are chained in the following order
-    dk (32 bytes) || ivk (32 bytes)
-    """
+def get_ivk(client: "TrezorClient", z_address_n: list[int], coin_name: str = "Zcash") -> str:
+    """Returns Zcash Unified Orchard Incoming Viewing Key."""
     return client.call(
         messages.ZcashGetIncomingViewingKey(
             z_address_n=z_address_n,
@@ -58,7 +48,7 @@ def get_ivk(client: TrezorClient, z_address_n: list[int], coin_name: str = "Zcas
 
 @expect(messages.ZcashAddress, field="address")
 def get_address(
-    client,
+    client: "TrezorClient",
     t_address_n: list[int] | None = None,
     z_address_n: list[int] | None = None,
     diversifier_index: int = 0,
@@ -83,7 +73,7 @@ EMPTY_ANCHOR = bytes.fromhex("ae2935f1dfd8a24aed7c70df7de3a668eb7a49b1319880dde2
 
 
 def sign_tx(
-    client,
+    client: "TrezorClient",
     inputs: list[messages.TxInput | messages.ZcashOrchardInput],
     outputs: list[messages.TxOutput | messages.ZcashOrchardOutput],
     coin_name: str = "Zcash",
@@ -93,7 +83,7 @@ def sign_tx(
     account: int = 0,
     anchor: bytes = EMPTY_ANCHOR,
     verbose: bool = False,
-) -> Generator[None, bytes, (dict[int, bytes], bytes)]:
+) -> "Generator[None, bytes, (dict[int, bytes], bytes)]":
     """
     Sign a Zcash transaction.
 

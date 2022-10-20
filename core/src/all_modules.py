@@ -831,8 +831,8 @@ if not utils.BITCOIN_ONLY:
     import apps.zcash.orchard.signer
     apps.zcash.signer
     import apps.zcash.signer
-    apps.zcash.unified_addresses
-    import apps.zcash.unified_addresses
+    apps.zcash.unified
+    import apps.zcash.unified
 
 # generate full alphabet
 a

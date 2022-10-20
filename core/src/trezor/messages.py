@@ -404,12 +404,12 @@ if TYPE_CHECKING:
             return isinstance(msg, cls)
 
     class ZcashFullViewingKey(protobuf.MessageType):
-        fvk: "bytes"
+        fvk: "str"
 
         def __init__(
             self,
             *,
-            fvk: "bytes",
+            fvk: "str",
         ) -> None:
             pass
 
@@ -434,12 +434,12 @@ if TYPE_CHECKING:
             return isinstance(msg, cls)
 
     class ZcashIncomingViewingKey(protobuf.MessageType):
-        ivk: "bytes"
+        ivk: "str"
 
         def __init__(
             self,
             *,
-            ivk: "bytes",
+            ivk: "str",
         ) -> None:
             pass
 

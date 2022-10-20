@@ -970,13 +970,13 @@ class ZcashGetFullViewingKey(protobuf.MessageType):
 class ZcashFullViewingKey(protobuf.MessageType):
     MESSAGE_WIRE_TYPE = 903
     FIELDS = {
-        1: protobuf.Field("fvk", "bytes", repeated=False, required=True),
+        1: protobuf.Field("fvk", "string", repeated=False, required=True),
     }
 
     def __init__(
         self,
         *,
-        fvk: "bytes",
+        fvk: "str",
     ) -> None:
         self.fvk = fvk
 
@@ -1001,13 +1001,13 @@ class ZcashGetIncomingViewingKey(protobuf.MessageType):
 class ZcashIncomingViewingKey(protobuf.MessageType):
     MESSAGE_WIRE_TYPE = 905
     FIELDS = {
-        1: protobuf.Field("ivk", "bytes", repeated=False, required=True),
+        1: protobuf.Field("ivk", "string", repeated=False, required=True),
     }
 
     def __init__(
         self,
         *,
-        ivk: "bytes",
+        ivk: "str",
     ) -> None:
         self.ivk = ivk
 

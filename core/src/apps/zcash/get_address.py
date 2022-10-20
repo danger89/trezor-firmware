@@ -12,7 +12,7 @@ from apps.common.coininfo import CoinInfo, by_name
 from apps.common.paths import HARDENED, address_n_to_str
 
 from .orchard import keychain as z_keychain
-from .unified_addresses import Typecode, encode as encode_unified
+from .unified import Typecode, encode_address
 
 if TYPE_CHECKING:
     from trezor.wire import Context
@@ -49,7 +49,7 @@ async def get_address(ctx: Context, msg: ZcashGetAddress) -> ZcashAddress:
             receivers=",".join(map(str, receivers.keys())),
         )
 
-        address = encode_unified(receivers, coin)
+        address = encode_address(receivers, coin)
 
     else:  # has only t-address
         title = address_n_to_str(msg.t_address_n)

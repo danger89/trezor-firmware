@@ -12,10 +12,10 @@ from apps.bitcoin.sign_tx.bitcoinlike import Bitcoinlike
 from apps.common.paths import HARDENED
 from apps.common.writers import write_compact_size, write_uint32_le
 
-from . import unified_addresses
+from . import unified
 from .approver import ZcashApprover
 from .hasher import ZcashHasher
-from .unified_addresses import Typecode
+from .unified import Typecode
 
 if ZCASH_SHIELDED:
     from .orchard.signer import OrchardSigner
@@ -170,7 +170,7 @@ class Zcash(Bitcoinlike):
     def output_derive_script(self, txo: TxOutput) -> bytes:
         # unified addresses
         if txo.address is not None and txo.address[0] == "u":
-            receivers = unified_addresses.decode(txo.address, self.coin)
+            receivers = unified.decode_address(txo.address, self.coin)
             if Typecode.P2PKH in receivers:
                 ensure(txo.script_type is OutputScriptType.PAYTOADDRESS)
                 pubkeyhash = receivers[Typecode.P2PKH]

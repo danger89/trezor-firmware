@@ -5,6 +5,9 @@ from trezor.enums import ButtonRequestType
 from trezor.messages import ZcashFullViewingKey, ZcashGetFullViewingKey
 from trezor.ui.layouts import confirm_action
 
+from apps.common import coininfo
+
+from ..unified import Typecode, encode_fvk
 from .keychain import with_keychain
 
 if TYPE_CHECKING:
@@ -18,7 +21,9 @@ async def get_fvk(
 ) -> ZcashFullViewingKey:
     await require_confirm_export_fvk(ctx)
     fvk = keychain.derive(msg.z_address_n).full_viewing_key()
-    return ZcashFullViewingKey(fvk=fvk.to_bytes())
+    receivers = {Typecode.ORCHARD: fvk.to_bytes()}
+    coin = coininfo.by_name(msg.coin_name)
+    return ZcashFullViewingKey(fvk=encode_fvk(receivers, coin))
 
 
 async def require_confirm_export_fvk(ctx: Context) -> None:

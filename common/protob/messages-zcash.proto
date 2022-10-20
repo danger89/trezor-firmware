@@ -31,7 +31,7 @@ message ZcashGetFullViewingKey {
  * @end
  */
 message ZcashFullViewingKey {
-    required bytes fvk = 1;
+    required string fvk = 1;
 }
 
 /**
@@ -50,7 +50,7 @@ message ZcashGetIncomingViewingKey {
  * @end
  */
 message ZcashIncomingViewingKey {
-    required bytes ivk = 1;
+    required string ivk = 1;
 }
 
 /**
