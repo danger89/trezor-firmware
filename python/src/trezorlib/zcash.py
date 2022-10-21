@@ -15,6 +15,7 @@
 # If not, see <https://www.gnu.org/licenses/lgpl-3.0.html>.
 
 from typing import TYPE_CHECKING
+import logging
 from . import exceptions, messages
 from .messages import ZcashSignatureType as SigType
 from .tools import expect
@@ -22,6 +23,9 @@ from .tools import expect
 if TYPE_CHECKING:
     from typing import Generator
     from .client import TrezorClient
+
+
+LOG = logging.getLogger(__name__)
 
 
 @expect(messages.ZcashFullViewingKey, field="fvk")
@@ -82,7 +86,6 @@ def sign_tx(
     expiry: int = 0,
     account: int = 0,
     anchor: bytes = EMPTY_ANCHOR,
-    verbose: bool = False,
 ) -> "Generator[None, bytes, (dict[int, bytes], bytes)]":
     """
     Sign a Zcash transaction.
@@ -98,7 +101,6 @@ def sign_tx(
     account: account number, from which is spent
         third digit of ZIP-32 path. 0 by default
     anchor: Orchard anchor
-    verbose: log protocol transctiption into stdout
 
     Example:
     --------
@@ -118,10 +120,6 @@ def sign_tx(
     sighash = next(protocol)
     signatures, serialized_tx = next(protocol)
     """
-
-    def log(*args, **kwargs):
-        if verbose:
-            print(*args, **kwargs)
 
     t_inputs = [x for x in inputs if isinstance(x, messages.TxInput)]
     t_outputs = [x for x in outputs if isinstance(x, messages.TxOutput)]
@@ -154,7 +152,7 @@ def sign_tx(
         SigType.ORCHARD_SPEND_AUTH:  dict(),
     }
 
-    log("T <- sign tx")
+    LOG.info("T <- sign tx")
     res = client.call(msg)
 
     R = messages.RequestType
@@ -162,7 +160,7 @@ def sign_tx(
         # If there's some part of signed transaction, let's add it
         if res.serialized:
             if res.serialized.serialized_tx:
-                log("T -> serialized tx ({} bytes)".format(len(res.serialized.serialized_tx)))
+                LOG.info("T -> serialized tx ({} bytes)".format(len(res.serialized.serialized_tx)))
                 serialized_tx += res.serialized.serialized_tx
 
             if res.serialized.signature_index is not None:
@@ -170,11 +168,11 @@ def sign_tx(
                 sig = res.serialized.signature
                 sig_type = res.serialized.signature_type
                 if sig_type == SigType.TRANSPARENT:
-                    log(f"T -> t signature {idx}")
+                    LOG.info(f"T -> t signature {idx}")
                     if signatures[sig_type][idx] is not None:
                         raise ValueError(f"Transparent signature for index {idx} already filled")
                 elif sig_type == SigType.ORCHARD_SPEND_AUTH:
-                    log(f"T -> o signature {idx}")
+                    LOG.info(f"T -> o signature {idx}")
                     if signatures[sig_type].get(idx) is not None:
                         raise ValueError(f"Orchard signature for index {idx} already filled")
                     if idx >= actions_count:
@@ -184,38 +182,38 @@ def sign_tx(
                 signatures[sig_type][idx] = sig
 
             if res.serialized.zcash_shielding_seed is not None:
-                log("T -> shielding seed")
+                LOG.info("T -> shielding seed")
                 yield res.serialized.zcash_shielding_seed
 
             if res.serialized.tx_sighash is not None:
-                log("T -> sighash")
+                LOG.info("T -> sighash")
                 yield res.serialized.tx_sighash
 
-        log("")
+        LOG.info("")
 
         if res.request_type == R.TXFINISHED:
             break
 
         elif res.request_type == R.TXINPUT:
-            log("T <- t input", res.details.request_index)
+            LOG.info("T <- t input", res.details.request_index)
             msg = messages.TransactionType()
             msg.inputs = [t_inputs[res.details.request_index]]
             res = client.call(messages.TxAck(tx=msg))
 
         elif res.request_type == R.TXOUTPUT:
-            log("T <- t output", res.details.request_index)
+            LOG.info("T <- t output", res.details.request_index)
             msg = messages.TransactionType()
             msg.outputs = [t_outputs[res.details.request_index]]
             res = client.call(messages.TxAck(tx=msg))
 
         elif res.request_type == R.TXORCHARDINPUT:
             txi = o_inputs[res.details.request_index]
-            log("T <- o input ", res.details.request_index)
+            LOG.info("T <- o input ", res.details.request_index)
             res = client.call(txi)
 
         elif res.request_type == R.TXORCHARDOUTPUT:
             txo = o_outputs[res.details.request_index]
-            log("T <- o output", res.details.request_index)
+            LOG.info("T <- o output", res.details.request_index)
             res = client.call(txo)
 
         elif res.request_type == R.NO_OP:
