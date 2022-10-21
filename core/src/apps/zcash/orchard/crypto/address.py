@@ -5,8 +5,6 @@ from trezor.crypto.pallas import Point, group_hash
 if TYPE_CHECKING:
     from trezor.crypto.pallas import Scalar
 
-    pass  # address.i
-
 
 # https://zips.z.cash/protocol/protocol.pdf#concretediversifyhash
 def diversify_hash(d: bytes) -> Point:
