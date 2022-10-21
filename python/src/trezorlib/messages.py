@@ -1096,17 +1096,7 @@ class ZcashOrchardOutput(protobuf.MessageType):
 
 
 class ZcashAck(protobuf.MessageType):
-    MESSAGE_WIRE_TYPE = 908
-    FIELDS = {
-        1: protobuf.Field("never_use_this_field", "bytes", repeated=False, required=False),
-    }
-
-    def __init__(
-        self,
-        *,
-        never_use_this_field: Optional["bytes"] = None,
-    ) -> None:
-        self.never_use_this_field = never_use_this_field
+    MESSAGE_WIRE_TYPE = 22
 
 
 class MultisigRedeemScriptType(protobuf.MessageType):

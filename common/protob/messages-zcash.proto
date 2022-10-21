@@ -5,6 +5,7 @@ package hw.trezor.messages.zcash;
 option java_package = "com.satoshilabs.trezor.lib.protobuf";
 option java_outer_classname = "TrezorMessageZcash";
 
+import "messages.proto";
 
 enum ZcashSignatureType {
     reserved 1, 2, 4;
@@ -98,5 +99,5 @@ message ZcashOrchardOutput {
 }
 
 message ZcashAck {
-    optional bytes never_use_this_field = 1;  // for some reason, empty messages are forbidden
+    option (wire_type) = 22;
 }
