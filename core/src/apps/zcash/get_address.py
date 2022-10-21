@@ -30,7 +30,7 @@ async def get_address(ctx: Context, msg: ZcashGetAddress) -> ZcashAddress:
     coin = by_name(msg.coin_name)
 
     if msg.z_address_n:
-        receivers = dict()
+        receivers = {}
         receivers[Typecode.ORCHARD] = await get_raw_orchard_address(ctx, msg)
 
         if msg.t_address_n:
