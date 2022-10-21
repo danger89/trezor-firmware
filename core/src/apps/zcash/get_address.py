@@ -24,19 +24,16 @@ def encode_p2pkh(raw_address: bytes, coin: CoinInfo) -> str:
 
 
 async def get_address(ctx: Context, msg: ZcashGetAddress) -> ZcashAddress:
-    has_t_addr = len(msg.t_address_n) != 0
-    has_z_addr = len(msg.z_address_n) != 0
-
-    if not (has_t_addr or has_z_addr):
+    if not (msg.t_address_n or msg.z_address_n):
         raise wire.DataError("t-address or z-address path expected")
 
     coin = by_name(msg.coin_name)
 
-    if has_z_addr:
+    if msg.z_address_n:
         receivers = dict()
         receivers[Typecode.ORCHARD] = await get_raw_orchard_address(ctx, msg)
 
-        if has_t_addr:
+        if msg.t_address_n:
             if msg.t_address_n[2] != msg.z_address_n[2]:
                 raise wire.DataError("Receivers use different acount numbers.")
             receivers[Typecode.P2PKH] = await get_raw_transparent_address(
