@@ -16,59 +16,64 @@
 
 import click
 
-from .. import zcash, messages, tools
+from .. import zcash, tools
 from . import with_client
+
+
+class NetworkParamType(click.ParamType):
+    name = "network"
+
+    def convert(self, value, param, ctx):
+        try:
+            return {
+                "mainnet": "Zcash",
+                "testnet": "Zcash Testnet",
+            }[value]
+        except KeyError:
+            self.fail(f"{value!r} is not a valid network", param, ctx)
+
+
+NETWORK = NetworkParamType()
+
 
 @click.group(name="zcash")
 def cli():
     """Zcash commands."""
 
-def _parse_network(network):
-    return {
-        "mainnet": "Zcash",  #messages.ZcashNetwork.MAINNET,
-        "testnet": "Zcash Testnet",  #messages.ZcashNetwork.TESTNET,
-    }[network]
-
 
 @cli.command()
 @click.option("-z", "--z-address", help="ZIP-32 Orchard derivation path.")
-@click.option(
-    "-w", "--network",
-    type=click.Choice(["mainnet", "testnet"]),
-    default="mainnet",
-)
+@click.option("-w", "--network", type=NETWORK, default="mainnet")
 @with_client
 def get_fvk(client, z_address, network):
     """Get Zcash Unified Full Incoming Key."""
-    return zcash.get_fvk(client, tools.parse_path(z_address), _parse_network(network))
+    return zcash.get_fvk(client, tools.parse_path(z_address), network)
+
 
 @cli.command()
 @click.option("-z", "--z-address", help="ZIP-32 Orchard derivation path.")
-@click.option(
-    "-w", "--network",
-    type=click.Choice(["mainnet", "testnet"]),
-    default="mainnet",
-)
+@click.option("-w", "--network", type=NETWORK, default="mainnet")
 @with_client
 def get_ivk(client, z_address, network):
     """Get Zcash Unified Incoming Viewing Key."""
-    return zcash.get_ivk(client, tools.parse_path(z_address), _parse_network(network))
+    return zcash.get_ivk(client, tools.parse_path(z_address), network)
 
-@cli.command(help="""Example:\n
-trezorctl zcash get-address -d -t m/44h/133h/0h/0/0 -z m/32h/133h/0h -j 0
-""")
+
+@cli.command()
 @click.option("-t", "--t-address", help="BIP-32 path of a P2PKH transparent address.")
 @click.option("-z", "--z-address", help="ZIP-32 Orchard derivation path.")
 @click.option("-j", "--diversifier-index", default=0, type=int, help="diversifier index of the shielded address.")
 @click.option("-d", "--show-display", is_flag=True)
-@click.option(
-    "-w", "--network",
-    type=click.Choice(["mainnet", "testnet"]),
-    default="mainnet",
-)
+@click.option("-w", "--network", type=NETWORK, default="mainnet")
 @with_client
 def get_address(client, t_address, z_address, diversifier_index, show_display, network):
-    """Get Zcash address."""
+    """
+    Get Zcash address.
+
+    Example:
+    --------
+    $ trezorctl zcash get-address -d -t m/44h/133h/0h/0/0 -z m/32h/133h/0h -j 0
+    """
     if not t_address and not z_address:
         return """Specify address path using -t (transparent) and -z (shielded) arguments.\nYou can use both to get Zcash unified address."""
 
@@ -80,7 +85,7 @@ def get_address(client, t_address, z_address, diversifier_index, show_display, n
         kwargs["z_address_n"] = tools.parse_path(z_address)
         kwargs["diversifier_index"] = diversifier_index
 
-    kwargs["coin_name"] = _parse_network(network)
+    kwargs["coin_name"] = network
 
     try:
         return zcash.get_address(client, **kwargs)
