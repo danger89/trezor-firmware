@@ -387,64 +387,36 @@ if TYPE_CHECKING:
         def is_type_of(cls, msg: Any) -> TypeGuard["HDNodeType"]:
             return isinstance(msg, cls)
 
-    class ZcashGetFullViewingKey(protobuf.MessageType):
+    class ZcashGetViewingKey(protobuf.MessageType):
         coin_name: "str"
         z_address_n: "list[int]"
+        full: "bool"
 
         def __init__(
             self,
             *,
             z_address_n: "list[int] | None" = None,
             coin_name: "str | None" = None,
+            full: "bool | None" = None,
         ) -> None:
             pass
 
         @classmethod
-        def is_type_of(cls, msg: Any) -> TypeGuard["ZcashGetFullViewingKey"]:
+        def is_type_of(cls, msg: Any) -> TypeGuard["ZcashGetViewingKey"]:
             return isinstance(msg, cls)
 
-    class ZcashFullViewingKey(protobuf.MessageType):
-        fvk: "str"
+    class ZcashViewingKey(protobuf.MessageType):
+        key: "str"
 
         def __init__(
             self,
             *,
-            fvk: "str",
+            key: "str",
         ) -> None:
             pass
 
         @classmethod
-        def is_type_of(cls, msg: Any) -> TypeGuard["ZcashFullViewingKey"]:
-            return isinstance(msg, cls)
-
-    class ZcashGetIncomingViewingKey(protobuf.MessageType):
-        coin_name: "str"
-        z_address_n: "list[int]"
-
-        def __init__(
-            self,
-            *,
-            z_address_n: "list[int] | None" = None,
-            coin_name: "str | None" = None,
-        ) -> None:
-            pass
-
-        @classmethod
-        def is_type_of(cls, msg: Any) -> TypeGuard["ZcashGetIncomingViewingKey"]:
-            return isinstance(msg, cls)
-
-    class ZcashIncomingViewingKey(protobuf.MessageType):
-        ivk: "str"
-
-        def __init__(
-            self,
-            *,
-            ivk: "str",
-        ) -> None:
-            pass
-
-        @classmethod
-        def is_type_of(cls, msg: Any) -> TypeGuard["ZcashIncomingViewingKey"]:
+        def is_type_of(cls, msg: Any) -> TypeGuard["ZcashViewingKey"]:
             return isinstance(msg, cls)
 
     class ZcashGetAddress(protobuf.MessageType):

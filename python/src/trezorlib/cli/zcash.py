@@ -44,19 +44,21 @@ def cli():
 @cli.command()
 @click.option("-z", "--z-address", help="ZIP-32 Orchard derivation path.")
 @click.option("-w", "--network", type=NETWORK, default="mainnet")
+@click.option("-t", "--network", type=NETWORK, default="mainnet")
+@click.option('-f', '--full', is_flag=True, help="Return **Full** Vieving Key.")
 @with_client
-def get_fvk(client, z_address, network):
-    """Get Zcash Unified Full Incoming Key."""
-    return zcash.get_fvk(client, tools.parse_path(z_address), network)
+def get_viewing_key(client, z_address, network, full):
+    """
+    Get Zcash Unified Incoming Key.
 
+    Use --full flag to return **Full** Viewing Key.
+    **Incoming** Viewing Key is returned otherwise.
 
-@cli.command()
-@click.option("-z", "--z-address", help="ZIP-32 Orchard derivation path.")
-@click.option("-w", "--network", type=NETWORK, default="mainnet")
-@with_client
-def get_ivk(client, z_address, network):
-    """Get Zcash Unified Incoming Viewing Key."""
-    return zcash.get_ivk(client, tools.parse_path(z_address), network)
+    Example:
+    --------
+    $ trezorctl zcash get-viewing-key -f -z m/32h/133h/0h
+    """
+    return zcash.get_viewing_key(client, tools.parse_path(z_address), network, full)
 
 
 @cli.command()

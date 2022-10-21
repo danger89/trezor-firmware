@@ -182,10 +182,8 @@ def find_message_handler_module(msg_type: int) -> str:
             return "apps.binance.sign_tx"
 
     if utils.ZCASH_SHIELDED:  # zcash shielded
-        if msg_type == MessageType.ZcashGetFullViewingKey:
-            return "apps.zcash.get_fvk"
-        if msg_type == MessageType.ZcashGetIncomingViewingKey:
-            return "apps.zcash.get_ivk"
+        if msg_type == MessageType.ZcashGetViewingKey:
+            return "apps.zcash.get_viewing_key"
         if msg_type == MessageType.ZcashGetAddress:
             return "apps.zcash.get_address"
 

@@ -28,24 +28,14 @@ if TYPE_CHECKING:
 LOG = logging.getLogger(__name__)
 
 
-@expect(messages.ZcashFullViewingKey, field="fvk")
-def get_fvk(client: "TrezorClient", z_address_n: list[int], coin_name: str = "Zcash") -> str:
+@expect(messages.ZcashViewingKey, field="key")
+def get_viewing_key(client: "TrezorClient", z_address_n: list[int], coin_name: str = "Zcash", full: bool = True) -> str:
     """Returns Zcash Unified Full Viewing Key."""
     return client.call(
-        messages.ZcashGetFullViewingKey(
+        messages.ZcashGetViewingKey(
             z_address_n=z_address_n,
             coin_name=coin_name,
-        )
-    )
-
-
-@expect(messages.ZcashIncomingViewingKey, field="ivk")
-def get_ivk(client: "TrezorClient", z_address_n: list[int], coin_name: str = "Zcash") -> str:
-    """Returns Zcash Unified Orchard Incoming Viewing Key."""
-    return client.call(
-        messages.ZcashGetIncomingViewingKey(
-            z_address_n=z_address_n,
-            coin_name=coin_name,
+            full=full,
         )
     )
 

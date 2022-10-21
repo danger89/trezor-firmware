@@ -233,9 +233,7 @@ if not utils.BITCOIN_ONLY:
     WebAuthnRemoveResidentCredential = 803
     ZcashGetAddress = 900
     ZcashAddress = 901
-    ZcashGetFullViewingKey = 902
-    ZcashFullViewingKey = 903
-    ZcashGetIncomingViewingKey = 904
-    ZcashIncomingViewingKey = 905
+    ZcashGetViewingKey = 902
+    ZcashViewingKey = 903
     ZcashOrchardInput = 906
     ZcashOrchardOutput = 907

@@ -361,10 +361,8 @@ enum MessageType {
     // Zcash
     MessageType_ZcashGetAddress = 900 [(wire_in) = true];
     MessageType_ZcashAddress = 901 [(wire_out) = true];
-    MessageType_ZcashGetFullViewingKey = 902 [(wire_in) = true];
-    MessageType_ZcashFullViewingKey = 903 [(wire_out) = true];
-    MessageType_ZcashGetIncomingViewingKey = 904 [(wire_in) = true];
-    MessageType_ZcashIncomingViewingKey = 905 [(wire_out) = true];
+    MessageType_ZcashGetViewingKey = 902 [(wire_in) = true];
+    MessageType_ZcashViewingKey = 903 [(wire_out) = true];
     MessageType_ZcashOrchardInput = 906 [(wire_in) = true];
     MessageType_ZcashOrchardOutput = 907 [(wire_in) = true];
 }

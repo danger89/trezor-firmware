@@ -259,10 +259,8 @@ class MessageType(IntEnum):
     WebAuthnRemoveResidentCredential = 803
     ZcashGetAddress = 900
     ZcashAddress = 901
-    ZcashGetFullViewingKey = 902
-    ZcashFullViewingKey = 903
-    ZcashGetIncomingViewingKey = 904
-    ZcashIncomingViewingKey = 905
+    ZcashGetViewingKey = 902
+    ZcashViewingKey = 903
     ZcashOrchardInput = 906
     ZcashOrchardOutput = 907
 
@@ -949,11 +947,12 @@ class HDNodeType(protobuf.MessageType):
         self.private_key = private_key
 
 
-class ZcashGetFullViewingKey(protobuf.MessageType):
+class ZcashGetViewingKey(protobuf.MessageType):
     MESSAGE_WIRE_TYPE = 902
     FIELDS = {
         1: protobuf.Field("coin_name", "string", repeated=False, required=False),
         2: protobuf.Field("z_address_n", "uint32", repeated=True, required=False),
+        3: protobuf.Field("full", "bool", repeated=False, required=False),
     }
 
     def __init__(
@@ -961,54 +960,25 @@ class ZcashGetFullViewingKey(protobuf.MessageType):
         *,
         z_address_n: Optional[Sequence["int"]] = None,
         coin_name: Optional["str"] = 'Zcash',
+        full: Optional["bool"] = True,
     ) -> None:
         self.z_address_n: Sequence["int"] = z_address_n if z_address_n is not None else []
         self.coin_name = coin_name
+        self.full = full
 
 
-class ZcashFullViewingKey(protobuf.MessageType):
+class ZcashViewingKey(protobuf.MessageType):
     MESSAGE_WIRE_TYPE = 903
     FIELDS = {
-        1: protobuf.Field("fvk", "string", repeated=False, required=True),
+        1: protobuf.Field("key", "string", repeated=False, required=True),
     }
 
     def __init__(
         self,
         *,
-        fvk: "str",
+        key: "str",
     ) -> None:
-        self.fvk = fvk
-
-
-class ZcashGetIncomingViewingKey(protobuf.MessageType):
-    MESSAGE_WIRE_TYPE = 904
-    FIELDS = {
-        1: protobuf.Field("coin_name", "string", repeated=False, required=False),
-        2: protobuf.Field("z_address_n", "uint32", repeated=True, required=False),
-    }
-
-    def __init__(
-        self,
-        *,
-        z_address_n: Optional[Sequence["int"]] = None,
-        coin_name: Optional["str"] = 'Zcash',
-    ) -> None:
-        self.z_address_n: Sequence["int"] = z_address_n if z_address_n is not None else []
-        self.coin_name = coin_name
-
-
-class ZcashIncomingViewingKey(protobuf.MessageType):
-    MESSAGE_WIRE_TYPE = 905
-    FIELDS = {
-        1: protobuf.Field("ivk", "string", repeated=False, required=True),
-    }
-
-    def __init__(
-        self,
-        *,
-        ivk: "str",
-    ) -> None:
-        self.ivk = ivk
+        self.key = key
 
 
 class ZcashGetAddress(protobuf.MessageType):

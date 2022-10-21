@@ -787,10 +787,8 @@ if not utils.BITCOIN_ONLY:
     import apps.zcash.f4jumble
     apps.zcash.get_address
     import apps.zcash.get_address
-    apps.zcash.get_fvk
-    import apps.zcash.get_fvk
-    apps.zcash.get_ivk
-    import apps.zcash.get_ivk
+    apps.zcash.get_viewing_key
+    import apps.zcash.get_viewing_key
     apps.zcash.hasher
     import apps.zcash.hasher
     apps.zcash.layout
