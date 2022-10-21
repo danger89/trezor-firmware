@@ -98,10 +98,10 @@ class Zcash(Bitcoinlike):
         self.taproot_only = False  # turn off taproot behavior
 
     async def step4_serialize_inputs(self):
-        # shield actions first to get a sighash
-        await self.orchard.compute_digest()
         if ZCASH_SHIELDED:
-            await super().step4_serialize_inputs()
+            # shield actions first to get a sighash
+            await self.orchard.compute_digest()
+        await super().step4_serialize_inputs()
 
     async def step5_serialize_outputs(self):
         # transparent
