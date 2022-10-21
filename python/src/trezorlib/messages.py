@@ -265,7 +265,6 @@ class MessageType(IntEnum):
     ZcashIncomingViewingKey = 905
     ZcashOrchardInput = 906
     ZcashOrchardOutput = 907
-    ZcashAck = 908
 
 
 class FailureType(IntEnum):

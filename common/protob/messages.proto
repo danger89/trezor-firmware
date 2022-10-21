@@ -367,5 +367,4 @@ enum MessageType {
     MessageType_ZcashIncomingViewingKey = 905 [(wire_out) = true];
     MessageType_ZcashOrchardInput = 906 [(wire_in) = true];
     MessageType_ZcashOrchardOutput = 907 [(wire_in) = true];
-    MessageType_ZcashAck = 908 [(wire_in) = true];
 }
