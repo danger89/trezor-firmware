@@ -10,7 +10,7 @@ from trezor.utils import HashWriter
 from apps.common import paths
 
 from .helpers import bytes_from_address
-from .keychain import with_keychain_from_chain_id_and_defs
+from .keychain import with_keychain_from_chain_id
 from .layout import (
     require_confirm_data,
     require_confirm_eip1559_fee,
@@ -53,7 +53,7 @@ def write_access_list(w: HashWriter, access_list: list[EthereumAccessList]) -> N
         rlp.write(w, item.storage_keys)
 
 
-@with_keychain_from_chain_id_and_defs
+@with_keychain_from_chain_id
 async def sign_tx_eip1559(
     ctx: wire.Context,
     msg: EthereumSignTxEIP1559,

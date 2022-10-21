@@ -10,7 +10,7 @@ from apps.common import paths
 from apps.common.signverify import decode_message
 
 from .helpers import address_from_bytes
-from .keychain import PATTERNS_ADDRESS, with_keychain_from_path_and_defs
+from .keychain import PATTERNS_ADDRESS, with_keychain_from_path
 
 if TYPE_CHECKING:
     from trezor.messages import EthereumSignMessage
@@ -30,7 +30,7 @@ def message_digest(message: bytes) -> bytes:
     return h.get_digest()
 
 
-@with_keychain_from_path_and_defs(*PATTERNS_ADDRESS)
+@with_keychain_from_path(*PATTERNS_ADDRESS)
 async def sign_message(
     ctx: Context,
     msg: EthereumSignMessage,

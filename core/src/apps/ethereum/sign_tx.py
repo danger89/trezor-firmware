@@ -11,7 +11,7 @@ from apps.common import paths
 
 from . import tokens
 from .helpers import bytes_from_address
-from .keychain import with_keychain_from_chain_id_and_defs
+from .keychain import with_keychain_from_chain_id
 from .layout import (
     require_confirm_data,
     require_confirm_fee,
@@ -24,7 +24,7 @@ if TYPE_CHECKING:
     from trezor.messages import EthereumTokenInfo
 
     from .definitions import Definitions
-    from .keychain import MsgInKeychainChainIdDefs
+    from .keychain import MsgInKeychainChainId
 
 
 # Maximum chain_id which returns the full signature_v (which must fit into an uint32).
@@ -33,7 +33,7 @@ if TYPE_CHECKING:
 MAX_CHAIN_ID = (0xFFFF_FFFF - 36) // 2
 
 
-@with_keychain_from_chain_id_and_defs
+@with_keychain_from_chain_id
 async def sign_tx(
     ctx: wire.Context,
     msg: EthereumSignTx,
@@ -100,7 +100,7 @@ async def sign_tx(
 
 async def handle_erc20(
     ctx: wire.Context,
-    msg: MsgInKeychainChainIdDefs,  # type: ignore [TypeVar "MsgInKeychainChainIdDefs" appears only once in generic function signature]
+    msg: MsgInKeychainChainId,
     definitions: Definitions,
 ) -> tuple[EthereumTokenInfo | None, bytes, bytes, int]:
     token = None
@@ -191,7 +191,7 @@ def check(msg: EthereumSignTx) -> None:
     check_common_fields(msg)
 
 
-def check_common_fields(msg: MsgInKeychainChainIdDefs) -> None:  # type: ignore [TypeVar "MsgInKeychainChainIdDefs" appears only once in generic function signature]
+def check_common_fields(msg: MsgInKeychainChainId) -> None:
     if msg.data_length > 0:
         if not msg.data_initial_chunk:
             raise wire.DataError("Data length provided, but no initial chunk")
