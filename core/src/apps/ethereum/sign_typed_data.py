@@ -6,6 +6,7 @@ from trezor.crypto.hashlib import sha3_256
 from trezor.enums import EthereumDataType
 from trezor.messages import (
     EthereumFieldType,
+    EthereumNetworkInfo,
     EthereumSignTypedData,
     EthereumTypedDataSignature,
     EthereumTypedDataStructAck,
@@ -32,8 +33,6 @@ if TYPE_CHECKING:
     from apps.common.keychain import Keychain
     from trezor.wire import Context
 
-    from . import definitions
-
 
 # Maximum data size we support
 MAX_VALUE_BYTE_SIZE = 1024
@@ -44,7 +43,7 @@ async def sign_typed_data(
     ctx: Context,
     msg: EthereumSignTypedData,
     keychain: Keychain,
-    defs: definitions.Definitions,
+    network: EthereumNetworkInfo,
 ) -> EthereumTypedDataSignature:
     await paths.validate_path(ctx, keychain, msg.address_n)
 
@@ -58,7 +57,7 @@ async def sign_typed_data(
     )
 
     return EthereumTypedDataSignature(
-        address=address_from_bytes(node.ethereum_pubkeyhash(), defs.network),
+        address=address_from_bytes(node.ethereum_pubkeyhash(), network),
         signature=signature[1:] + signature[0:1],
     )
 

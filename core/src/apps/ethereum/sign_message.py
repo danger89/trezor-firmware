@@ -13,12 +13,10 @@ from .helpers import address_from_bytes
 from .keychain import PATTERNS_ADDRESS, with_keychain_from_path
 
 if TYPE_CHECKING:
-    from trezor.messages import EthereumSignMessage
+    from trezor.messages import EthereumSignMessage, EthereumNetworkInfo
     from trezor.wire import Context
 
     from apps.common.keychain import Keychain
-
-    from . import definitions
 
 
 def message_digest(message: bytes) -> bytes:
@@ -35,12 +33,12 @@ async def sign_message(
     ctx: Context,
     msg: EthereumSignMessage,
     keychain: Keychain,
-    defs: definitions.Definitions,
+    network: EthereumNetworkInfo,
 ) -> EthereumMessageSignature:
     await paths.validate_path(ctx, keychain, msg.address_n)
 
     node = keychain.derive(msg.address_n)
-    address = address_from_bytes(node.ethereum_pubkeyhash(), defs.network)
+    address = address_from_bytes(node.ethereum_pubkeyhash(), network)
     await confirm_signverify(
         ctx, "ETH", decode_message(msg.message), address, verify=False
     )
