@@ -1,12 +1,7 @@
-from typing import TYPE_CHECKING
+from typing import Iterable
 
 from trezor.crypto.hashlib import blake2b
 from trezor.crypto.pallas import Fp, Scalar
-
-if TYPE_CHECKING:
-    from typing import Iterable
-
-    pass  # utils.i
 
 
 def xor(a: bytes, b: bytes) -> bytes:
