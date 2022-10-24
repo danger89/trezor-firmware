@@ -11,7 +11,7 @@ from apps.common import paths
 
 from . import tokens
 from .helpers import bytes_from_address
-from .keychain import with_keychain_from_chain_id
+from .keychain import with_keychain_and_defs_from_chain_id
 from .layout import (
     require_confirm_data,
     require_confirm_fee,
@@ -33,7 +33,7 @@ if TYPE_CHECKING:
 MAX_CHAIN_ID = (0xFFFF_FFFF - 36) // 2
 
 
-@with_keychain_from_chain_id
+@with_keychain_and_defs_from_chain_id
 async def sign_tx(
     ctx: wire.Context,
     msg: EthereumSignTx,

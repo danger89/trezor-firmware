@@ -6,7 +6,6 @@ from trezor.crypto.hashlib import sha3_256
 from trezor.enums import EthereumDataType
 from trezor.messages import (
     EthereumFieldType,
-    EthereumNetworkInfo,
     EthereumSignTypedData,
     EthereumTypedDataSignature,
     EthereumTypedDataStructAck,
@@ -17,9 +16,10 @@ from trezor.messages import (
 from trezor.utils import HashWriter
 
 from apps.common import paths
+from apps.ethereum.definitions import Definitions
 
 from .helpers import address_from_bytes, get_type_name
-from .keychain import PATTERNS_ADDRESS, with_keychain_from_path
+from .keychain import PATTERNS_ADDRESS, with_keychain_and_defs_from_path
 from .layout import (
     confirm_empty_typed_message,
     confirm_typed_data_final,
@@ -38,12 +38,12 @@ if TYPE_CHECKING:
 MAX_VALUE_BYTE_SIZE = 1024
 
 
-@with_keychain_from_path(*PATTERNS_ADDRESS)
+@with_keychain_and_defs_from_path(*PATTERNS_ADDRESS)
 async def sign_typed_data(
     ctx: Context,
     msg: EthereumSignTypedData,
     keychain: Keychain,
-    network: EthereumNetworkInfo,
+    defs: Definitions,
 ) -> EthereumTypedDataSignature:
     await paths.validate_path(ctx, keychain, msg.address_n)
 
@@ -57,7 +57,7 @@ async def sign_typed_data(
     )
 
     return EthereumTypedDataSignature(
-        address=address_from_bytes(node.ethereum_pubkeyhash(), network),
+        address=address_from_bytes(node.ethereum_pubkeyhash(), defs.network),
         signature=signature[1:] + signature[0:1],
     )
 
