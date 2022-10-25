@@ -1,3 +1,5 @@
+from typing import Iterator
+
 import pytest
 
 from trezorlib import debuglink, device
@@ -9,7 +11,7 @@ from ..upgrade_tests import core_only
 
 
 @pytest.fixture
-def emulator() -> Emulator:
+def emulator() -> Iterator[Emulator]:
     with EmulatorWrapper("core") as emu:
         yield emu
 

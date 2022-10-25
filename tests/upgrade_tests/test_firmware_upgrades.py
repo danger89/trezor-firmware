@@ -15,7 +15,7 @@
 # If not, see <https://www.gnu.org/licenses/lgpl-3.0.html>.
 
 import dataclasses
-from typing import List
+from typing import TYPE_CHECKING, List
 
 import pytest
 
@@ -28,6 +28,9 @@ from ..common import MNEMONIC_SLIP39_BASIC_20_3of6, MNEMONIC_SLIP39_BASIC_20_3of
 from ..device_handler import BackgroundDeviceHandler
 from ..emulators import ALL_TAGS, EmulatorWrapper
 from . import for_all, for_tags
+
+if TYPE_CHECKING:
+    from trezorlib.debuglink import TrezorClientDebugLink as Client
 
 models.TREZOR_ONE = dataclasses.replace(models.TREZOR_ONE, minimum_version=(1, 0, 0))
 models.TREZOR_T = dataclasses.replace(models.TREZOR_T, minimum_version=(2, 0, 0))
@@ -44,8 +47,8 @@ STRENGTH = 128
 
 
 @for_all()
-def test_upgrade_load(gen: str, tag: str):
-    def asserts(client):
+def test_upgrade_load(gen: str, tag: str) -> None:
+    def asserts(client: "Client"):
         assert not client.features.pin_protection
         assert not client.features.passphrase_protection
         assert client.features.initialized
@@ -53,6 +56,7 @@ def test_upgrade_load(gen: str, tag: str):
         assert btc.get_address(client, "Bitcoin", PATH) == ADDRESS
 
     with EmulatorWrapper(gen, tag) as emu:
+        assert emu.client is not None
         debuglink.load_device_by_mnemonic(
             emu.client,
             mnemonic=MNEMONIC,
@@ -66,16 +70,17 @@ def test_upgrade_load(gen: str, tag: str):
         storage = emu.get_storage()
 
     with EmulatorWrapper(gen, storage=storage) as emu:
+        assert emu.client is not None
         assert device_id == emu.client.features.device_id
         asserts(emu.client)
         assert emu.client.features.language == LANGUAGE
 
 
 @for_all("legacy")
-def test_upgrade_load_pin(gen: str, tag: str):
+def test_upgrade_load_pin(gen: str, tag: str) -> None:
     PIN = "1234"
 
-    def asserts(client):
+    def asserts(client: "Client") -> None:
         assert client.features.pin_protection
         assert not client.features.passphrase_protection
         assert client.features.initialized
@@ -84,6 +89,7 @@ def test_upgrade_load_pin(gen: str, tag: str):
         assert btc.get_address(client, "Bitcoin", PATH) == ADDRESS
 
     with EmulatorWrapper(gen, tag) as emu:
+        assert emu.client is not None
         debuglink.load_device_by_mnemonic(
             emu.client,
             mnemonic=MNEMONIC,
@@ -97,6 +103,7 @@ def test_upgrade_load_pin(gen: str, tag: str):
         storage = emu.get_storage()
 
     with EmulatorWrapper(gen, storage=storage) as emu:
+        assert emu.client is not None
         assert device_id == emu.client.features.device_id
         asserts(emu.client)
         assert emu.client.features.language == LANGUAGE
@@ -117,7 +124,7 @@ def test_upgrade_load_pin(gen: str, tag: str):
 def test_storage_upgrade_progressive(gen: str, tags: List[str]):
     PIN = "1234"
 
-    def asserts(client):
+    def asserts(client: "Client") -> None:
         assert client.features.pin_protection
         assert not client.features.passphrase_protection
         assert client.features.initialized
@@ -126,6 +133,7 @@ def test_storage_upgrade_progressive(gen: str, tags: List[str]):
         assert btc.get_address(client, "Bitcoin", PATH) == ADDRESS
 
     with EmulatorWrapper(gen, tags[0]) as emu:
+        assert emu.client is not None
         debuglink.load_device_by_mnemonic(
             emu.client,
             mnemonic=MNEMONIC,
@@ -143,6 +151,7 @@ def test_storage_upgrade_progressive(gen: str, tags: List[str]):
             storage = emu.get_storage()
 
     with EmulatorWrapper(gen, storage=storage) as emu:
+        assert emu.client is not None
         assert device_id == emu.client.features.device_id
         asserts(emu.client)
         assert emu.client.features.language == LANGUAGE
@@ -153,7 +162,7 @@ def test_upgrade_wipe_code(gen: str, tag: str):
     PIN = "1234"
     WIPE_CODE = "4321"
 
-    def asserts(client):
+    def asserts(client: "Client"):
         assert client.features.pin_protection
         assert not client.features.passphrase_protection
         assert client.features.initialized
@@ -162,6 +171,7 @@ def test_upgrade_wipe_code(gen: str, tag: str):
         assert btc.get_address(client, "Bitcoin", PATH) == ADDRESS
 
     with EmulatorWrapper(gen, tag) as emu:
+        assert emu.client is not None
         debuglink.load_device_by_mnemonic(
             emu.client,
             mnemonic=MNEMONIC,
@@ -180,6 +190,7 @@ def test_upgrade_wipe_code(gen: str, tag: str):
         storage = emu.get_storage()
 
     with EmulatorWrapper(gen, storage=storage) as emu:
+        assert emu.client is not None
         assert device_id == emu.client.features.device_id
         asserts(emu.client)
         assert emu.client.features.language == LANGUAGE
@@ -195,7 +206,7 @@ def test_upgrade_wipe_code(gen: str, tag: str):
 
 @for_all("legacy")
 def test_upgrade_reset(gen: str, tag: str):
-    def asserts(client):
+    def asserts(client: "Client"):
         assert not client.features.pin_protection
         assert not client.features.passphrase_protection
         assert client.features.initialized
@@ -205,6 +216,7 @@ def test_upgrade_reset(gen: str, tag: str):
         assert not client.features.no_backup
 
     with EmulatorWrapper(gen, tag) as emu:
+        assert emu.client is not None
         device.reset(
             emu.client,
             display_random=False,
@@ -220,6 +232,7 @@ def test_upgrade_reset(gen: str, tag: str):
         storage = emu.get_storage()
 
     with EmulatorWrapper(gen, storage=storage) as emu:
+        assert emu.client is not None
         assert device_id == emu.client.features.device_id
         asserts(emu.client)
         assert emu.client.features.language == LANGUAGE
@@ -228,7 +241,7 @@ def test_upgrade_reset(gen: str, tag: str):
 
 @for_all()
 def test_upgrade_reset_skip_backup(gen: str, tag: str):
-    def asserts(client):
+    def asserts(client: "Client"):
         assert not client.features.pin_protection
         assert not client.features.passphrase_protection
         assert client.features.initialized
@@ -238,6 +251,7 @@ def test_upgrade_reset_skip_backup(gen: str, tag: str):
         assert not client.features.no_backup
 
     with EmulatorWrapper(gen, tag) as emu:
+        assert emu.client is not None
         device.reset(
             emu.client,
             display_random=False,
@@ -254,6 +268,7 @@ def test_upgrade_reset_skip_backup(gen: str, tag: str):
         storage = emu.get_storage()
 
     with EmulatorWrapper(gen, storage=storage) as emu:
+        assert emu.client is not None
         assert device_id == emu.client.features.device_id
         asserts(emu.client)
         assert emu.client.features.language == LANGUAGE
@@ -262,7 +277,7 @@ def test_upgrade_reset_skip_backup(gen: str, tag: str):
 
 @for_all(legacy_minimum_version=(1, 7, 2))
 def test_upgrade_reset_no_backup(gen: str, tag: str):
-    def asserts(client):
+    def asserts(client: "Client"):
         assert not client.features.pin_protection
         assert not client.features.passphrase_protection
         assert client.features.initialized
@@ -272,6 +287,7 @@ def test_upgrade_reset_no_backup(gen: str, tag: str):
         assert client.features.no_backup
 
     with EmulatorWrapper(gen, tag) as emu:
+        assert emu.client is not None
         device.reset(
             emu.client,
             display_random=False,
@@ -288,6 +304,7 @@ def test_upgrade_reset_no_backup(gen: str, tag: str):
         storage = emu.get_storage()
 
     with EmulatorWrapper(gen, storage=storage) as emu:
+        assert emu.client is not None
         assert device_id == emu.client.features.device_id
         asserts(emu.client)
         assert emu.client.features.language == LANGUAGE
@@ -300,15 +317,19 @@ def test_upgrade_shamir_recovery(gen: str, tag: str):
     with EmulatorWrapper(gen, tag) as emu, BackgroundDeviceHandler(
         emu.client
     ) as device_handler:
+        assert emu.client is not None
         assert emu.client.features.recovery_mode is False
         emu.client.watch_layout(True)
         debug = device_handler.debuglink()
 
         device_handler.run(device.recover, pin_protection=False)
 
-        recovery.confirm_recovery(debug)
-        recovery.select_number_of_words(debug)
-        layout = recovery.enter_share(debug, MNEMONIC_SLIP39_BASIC_20_3of6[0])
+        recovery.confirm_recovery(debug, legacy_ui=True)
+        recovery.select_number_of_words(debug, legacy_ui=True)
+        layout = recovery.enter_share(
+            debug, MNEMONIC_SLIP39_BASIC_20_3of6[0], legacy_ui=True
+        )
+        assert layout is not None
         assert "2 more shares" in layout.text
 
         device_id = emu.client.features.device_id
@@ -316,6 +337,7 @@ def test_upgrade_shamir_recovery(gen: str, tag: str):
         device_handler.check_finalize()
 
     with EmulatorWrapper(gen, storage=storage) as emu:
+        assert emu.client is not None
         assert device_id == emu.client.features.device_id
         assert emu.client.features.recovery_mode
         debug = emu.client.debug
@@ -323,14 +345,17 @@ def test_upgrade_shamir_recovery(gen: str, tag: str):
 
         # second share
         layout = recovery.enter_share(debug, MNEMONIC_SLIP39_BASIC_20_3of6[2])
+        assert layout is not None
         assert "1 more share" in layout.text
 
         # last one
         layout = recovery.enter_share(debug, MNEMONIC_SLIP39_BASIC_20_3of6[1])
+        assert layout is not None
         assert "You have successfully" in layout.text
 
         # Check the result
         state = debug.state()
+        assert state.mnemonic_secret is not None
         assert state.mnemonic_secret.hex() == MNEMONIC_SLIP39_BASIC_20_3of6_SECRET
         assert state.mnemonic_type == BackupType.Slip39_Basic
 
@@ -339,6 +364,7 @@ def test_upgrade_shamir_recovery(gen: str, tag: str):
 def test_upgrade_u2f(gen: str, tag: str):
     """Check U2F counter stayed the same after an upgrade."""
     with EmulatorWrapper(gen, tag) as emu:
+        assert emu.client is not None
         debuglink.load_device_by_mnemonic(
             emu.client,
             mnemonic=MNEMONIC,
@@ -355,6 +381,7 @@ def test_upgrade_u2f(gen: str, tag: str):
         storage = emu.get_storage()
 
     with EmulatorWrapper(gen, storage=storage) as emu:
+        assert emu.client is not None
         counter = fido.get_next_counter(emu.client)
         assert counter == 12
 

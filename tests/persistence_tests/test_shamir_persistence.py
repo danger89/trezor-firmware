@@ -14,6 +14,8 @@
 # You should have received a copy of the License along with this library.
 # If not, see <https://www.gnu.org/licenses/lgpl-3.0.html>.
 
+from typing import Iterator
+
 import pytest
 
 from trezorlib import device
@@ -28,7 +30,7 @@ from ..upgrade_tests import core_only
 
 
 @pytest.fixture
-def emulator() -> Emulator:
+def emulator() -> Iterator[Emulator]:
     with EmulatorWrapper("core") as emu:
         yield emu
 
@@ -40,6 +42,7 @@ def _restart(device_handler: BackgroundDeviceHandler, emulator: Emulator):
 
 @core_only
 def test_abort(emulator: Emulator):
+    assert emulator.client is not None
     device_handler = BackgroundDeviceHandler(emulator.client)
     debug = device_handler.debuglink()
     features = device_handler.features()
@@ -48,9 +51,10 @@ def test_abort(emulator: Emulator):
 
     device_handler.run(device.recover, pin_protection=False)
     layout = debug.wait_layout()
-    assert layout.text.startswith("Recovery mode")
+    assert layout.get_title() == "RECOVERY MODE"
 
     layout = debug.click(buttons.OK, wait=True)
+    assert layout is not None
     assert "Select number of words" in layout.text
 
     device_handler.restart(emulator)
@@ -64,9 +68,11 @@ def test_abort(emulator: Emulator):
     assert "Select number of words" in layout.text
     layout = debug.click(buttons.CANCEL, wait=True)
 
-    assert layout.text.startswith("Abort recovery")
+    assert layout is not None
+    assert layout.get_title() == "ABORT RECOVERY"
     layout = debug.click(buttons.OK, wait=True)
 
+    assert layout is not None
     assert layout.text == "Homescreen"
     features = device_handler.features()
     assert features.recovery_mode is False
@@ -74,6 +80,7 @@ def test_abort(emulator: Emulator):
 
 @core_only
 def test_recovery_single_reset(emulator: Emulator):
+    assert emulator.client is not None
     device_handler = BackgroundDeviceHandler(emulator.client)
     debug = device_handler.debuglink()
     features = device_handler.features()
@@ -110,6 +117,7 @@ def test_recovery_on_old_wallet(emulator: Emulator):
     Initialize+GetFeatures). At minimum, these two messages must not interrupt the
     running recovery.
     """
+    assert emulator.client is not None
     device_handler = BackgroundDeviceHandler(emulator.client)
     debug = device_handler.debuglink()
     features = device_handler.features()
@@ -137,7 +145,7 @@ def test_recovery_on_old_wallet(emulator: Emulator):
     assert "Enter any share" in layout.text
     debug.press_yes()
     layout = debug.wait_layout()
-    assert layout.text == "Slip39Keyboard"
+    assert layout.text == "< MnemonicKeyboard >"
 
     # enter first word
     debug.input(words[0])
@@ -149,7 +157,7 @@ def test_recovery_on_old_wallet(emulator: Emulator):
 
     # try entering remaining 19 words
     for word in words[1:]:
-        assert layout.text == "Slip39Keyboard"
+        assert layout.text == "< MnemonicKeyboard >"
         debug.input(word)
         layout = debug.wait_layout()
 
@@ -176,14 +184,17 @@ def test_recovery_multiple_resets(emulator: Emulator):
         expected_text = "Enter any share"
         remaining = len(shares)
         for share in shares:
+            assert layout is not None
             assert expected_text in layout.text
             layout = recovery.enter_share(debug, share)
             remaining -= 1
-            expected_text = "Success You have entered"
+            expected_text = "You have entered"
             debug = _restart(device_handler, emulator)
 
-        assert "You have successfully recovered your wallet" in layout.text
+        assert layout is not None
+        assert "You have successfully recovered your wallet" in layout.get_content()
 
+    assert emulator.client is not None
     device_handler = BackgroundDeviceHandler(emulator.client)
     debug = device_handler.debuglink()
     features = device_handler.features()
