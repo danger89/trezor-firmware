@@ -207,15 +207,6 @@ def token_by_chain_address(chain_id: int, address: bytes) -> EthereumTokenInfo |
                 chain_id=chain_id,
                 name="Chain",
             )
-    if chain_id == 137:  # MATIC
-        if address == b"\x2c\x89\xbb\xc9\x2b\xd8\x6f\x80\x75\xd1\xde\xcc\x58\xc7\xf4\xe0\x10\x7f\x28\x6b":
-            return EthereumTokenInfo(
-                symbol="AVAX",
-                decimals=18,
-                address=address,
-                chain_id=chain_id,
-                name="Avalanche",
-            )
     if chain_id == 56:  # bnb
         if address == b"\x0e\xb3\xa7\x05\xfc\x54\x72\x50\x37\xcc\x9e\x00\x8b\xde\xde\x69\x7f\x62\xf3\x35":
             return EthereumTokenInfo(
@@ -224,5 +215,14 @@ def token_by_chain_address(chain_id: int, address: bytes) -> EthereumTokenInfo |
                 address=address,
                 chain_id=chain_id,
                 name="Cosmos Hub",
+            )
+    if chain_id == 137:  # MATIC
+        if address == b"\x2c\x89\xbb\xc9\x2b\xd8\x6f\x80\x75\xd1\xde\xcc\x58\xc7\xf4\xe0\x10\x7f\x28\x6b":
+            return EthereumTokenInfo(
+                symbol="AVAX",
+                decimals=18,
+                address=address,
+                chain_id=chain_id,
+                name="Avalanche",
             )
     return None
