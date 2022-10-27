@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING
 
 from trezor import wire
+from trezor.messages import EthereumNetworkInfo
 
 from apps.common import paths
 from apps.common.keychain import get_keychain
@@ -14,7 +15,6 @@ if TYPE_CHECKING:
 
     from trezor.messages import (
         EthereumGetAddress,
-        EthereumNetworkInfo,
         EthereumSignMessage,
         EthereumSignTx,
         EthereumSignTxEIP1559,

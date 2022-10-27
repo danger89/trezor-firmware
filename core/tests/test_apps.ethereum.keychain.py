@@ -6,24 +6,24 @@ from apps.common.keychain import get_keychain
 from apps.common.paths import HARDENED
 
 if not utils.BITCOIN_ONLY:
-    from apps.ethereum import CURVE
+    from apps.ethereum import CURVE, networks
     from apps.ethereum.keychain import (
         PATTERNS_ADDRESS,
         _schemas_from_address_n,
-        with_keychain_from_path,
-        with_keychain_from_path_and_defs,
-        with_keychain_from_chain_id_and_defs,
+        with_keychain_and_network_from_path,
+        with_keychain_and_defs_from_path,
+        with_keychain_and_defs_from_chain_id,
     )
 
     from ethereum_common import (
         construct_network_info,
-        get_ethereum_encoded_definition,
-        get_ethereum_encoded_network_definition,
+        get_encoded_network_definition,
     )
 
     from trezor.messages import (
+        EthereumDefinitions,
         EthereumGetAddress,
-        EthereumGetPublicKey,
+        EthereumSignTypedData,
         EthereumSignTx,
     )
 
@@ -79,7 +79,7 @@ class TestEthereumKeychain(unittest.TestCase):
         schemas = tuple(_schemas_from_address_n(
             PATTERNS_ADDRESS,
             [44 | HARDENED, 0 | HARDENED, 0 | HARDENED],
-            None,
+            networks.UNKNOWN_NETWORK,
         ))
         self.assertEqual(schemas, ())
 
@@ -88,44 +88,9 @@ class TestEthereumKeychain(unittest.TestCase):
         keychain = self.from_address_n([0 | HARDENED, 60 | HARDENED, 0 | HARDENED])
         self._check_keychain(keychain, 60)
 
-    def test_with_keychain_from_path(self):
-        @with_keychain_from_path(*PATTERNS_ADDRESS)
-        async def handler(ctx, msg, keychain):
-            self._check_keychain(keychain, msg.address_n[1] & ~HARDENED)
-
-        await_result(
-            handler(
-                wire.DUMMY_CONTEXT,
-                EthereumGetPublicKey(
-                    address_n=[44 | HARDENED, 60 | HARDENED, 0 | HARDENED],
-                    encoded_network=get_ethereum_encoded_network_definition(slip44=60),
-                ),
-            )
-        )
-        await_result(
-            handler(
-                wire.DUMMY_CONTEXT,
-                EthereumGetPublicKey(
-                    address_n=[44 | HARDENED, 108 | HARDENED, 0 | HARDENED],
-                    encoded_network=get_ethereum_encoded_network_definition(slip44=108),
-                ),
-            )
-        )
-
-        with self.assertRaises(wire.DataError):
-            await_result(
-                handler(
-                    wire.DUMMY_CONTEXT,
-                    EthereumGetPublicKey(
-                        address_n=[44 | HARDENED, 0 | HARDENED, 0 | HARDENED],
-                        encoded_network=None,
-                    ),
-                )
-            )
-
-    def test_with_keychain_from_path_and_defs(self):
-        @with_keychain_from_path_and_defs(*PATTERNS_ADDRESS)
-        async def handler(ctx, msg, keychain, defs):
+    def test_with_keychain_and_network_from_path(self):
+        @with_keychain_and_network_from_path(*PATTERNS_ADDRESS)
+        async def handler(ctx, msg, keychain, network):
             self._check_keychain(keychain, msg.address_n[1] & ~HARDENED)
 
         await_result(
@@ -133,7 +98,7 @@ class TestEthereumKeychain(unittest.TestCase):
                 wire.DUMMY_CONTEXT,
                 EthereumGetAddress(
                     address_n=[44 | HARDENED, 60 | HARDENED, 0 | HARDENED],
-                    encoded_network=get_ethereum_encoded_network_definition(slip44=60),
+                    encoded_network=get_encoded_network_definition(slip44=60),
                 ),
             )
         )
@@ -142,7 +107,7 @@ class TestEthereumKeychain(unittest.TestCase):
                 wire.DUMMY_CONTEXT,
                 EthereumGetAddress(
                     address_n=[44 | HARDENED, 108 | HARDENED, 0 | HARDENED],
-                    encoded_network=get_ethereum_encoded_network_definition(slip44=108),
+                    encoded_network=get_encoded_network_definition(slip44=108),
                 ),
             )
         )
@@ -158,8 +123,46 @@ class TestEthereumKeychain(unittest.TestCase):
                 )
             )
 
+    def test_with_keychain_and_defs_from_path(self):
+        @with_keychain_and_defs_from_path(*PATTERNS_ADDRESS)
+        async def handler(ctx, msg, keychain, defs):
+            self._check_keychain(keychain, msg.address_n[1] & ~HARDENED)
+
+        await_result(
+            handler(
+                wire.DUMMY_CONTEXT,
+                EthereumSignTypedData(
+                    primary_type="",
+                    address_n=[44 | HARDENED, 60 | HARDENED, 0 | HARDENED],
+                    encoded_network=get_encoded_network_definition(slip44=60),
+                ),
+            )
+        )
+        await_result(
+            handler(
+                wire.DUMMY_CONTEXT,
+                EthereumSignTypedData(
+                    primary_type="",
+                    address_n=[44 | HARDENED, 108 | HARDENED, 0 | HARDENED],
+                    encoded_network=get_encoded_network_definition(slip44=108),
+                ),
+            )
+        )
+
+        with self.assertRaises(wire.DataError):
+            await_result(
+                handler(
+                    wire.DUMMY_CONTEXT,
+                    EthereumSignTypedData(
+                    primary_type="",
+                        address_n=[44 | HARDENED, 0 | HARDENED, 0 | HARDENED],
+                        encoded_network=None,
+                    ),
+                )
+            )
+
     def test_with_keychain_from_chain_id_and_defs(self):
-        @with_keychain_from_chain_id_and_defs
+        @with_keychain_and_defs_from_chain_id
         async def handler_chain_id(ctx, msg, keychain, defs):
             slip44_id = msg.address_n[1] & ~HARDENED
             # standard tests
@@ -175,7 +178,10 @@ class TestEthereumKeychain(unittest.TestCase):
                     chain_id=1,
                     gas_price=b"",
                     gas_limit=b"",
-                    definitions=get_ethereum_encoded_definition(chain_id=1),
+                    definitions=EthereumDefinitions(
+                        encoded_network=get_encoded_network_definition(chain_id=1),
+                        encoded_token=None,
+                    ),
                 ),
             )
         )
@@ -188,7 +194,10 @@ class TestEthereumKeychain(unittest.TestCase):
                     chain_id=61,
                     gas_price=b"",
                     gas_limit=b"",
-                    definitions=get_ethereum_encoded_definition(chain_id=61),
+                    definitions=EthereumDefinitions(
+                        encoded_network=get_encoded_network_definition(chain_id=61),
+                        encoded_token=None,
+                    ),
                 ),
             )
         )
@@ -203,7 +212,10 @@ class TestEthereumKeychain(unittest.TestCase):
                     chain_id=61,
                     gas_price=b"",
                     gas_limit=b"",
-                    definitions=get_ethereum_encoded_definition(chain_id=61),
+                    definitions=EthereumDefinitions(
+                        encoded_network=get_encoded_network_definition(chain_id=61),
+                        encoded_token=None,
+                    ),
                 ),
             )
         )
@@ -217,7 +229,10 @@ class TestEthereumKeychain(unittest.TestCase):
                         chain_id=2,
                         gas_price=b"",
                         gas_limit=b"",
-                        definitions=get_ethereum_encoded_definition(chain_id=2),
+                        definitions=EthereumDefinitions(
+                            encoded_network=get_encoded_network_definition(chain_id=2),
+                            encoded_token=None,
+                        ),
                     ),
                 )
             )
