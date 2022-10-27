@@ -2,6 +2,7 @@ use crate::micropython::{map::Map, module::Module, qstr::Qstr};
 
 pub mod common;
 mod fp;
+mod generators;
 mod point;
 mod scalar;
 
@@ -74,4 +75,14 @@ pub static mp_module_trezorpallas: Module = obj_module! {
     ///     def __neg__(self) -> Point:
     ///         ...
     Qstr::MP_QSTR_Point => (&point::POINT_TYPE).as_obj(),
+    /// class generators:
+    ///     SPENDING_KEY_BASE: Point
+    ///     NULLIFIER_K_BASE: Point
+    ///     VALUE_COMMITMENT_VALUE_BASE: Point
+    ///     VALUE_COMMITMENT_RANDOMNESS_BASE: Point
+    ///     NOTE_COMMITMENT_BASE: Point
+    ///     NOTE_COMMITMENT_Q: Point
+    ///     IVK_COMMITMENT_BASE: Point
+    ///     IVK_COMMITMENT_Q: Point
+    Qstr::MP_QSTR_generators => (&generators::GENERATORS_TYPE).as_obj(),
 };

@@ -65,3 +65,15 @@ class Point:
         ...
     def __neg__(self) -> Point:
         ...
+
+
+# rust/src/zcash_primitives/pallas/mod.rs
+class generators:
+    SPENDING_KEY_BASE: Point
+    NULLIFIER_K_BASE: Point
+    VALUE_COMMITMENT_VALUE_BASE: Point
+    VALUE_COMMITMENT_RANDOMNESS_BASE: Point
+    NOTE_COMMITMENT_BASE: Point
+    NOTE_COMMITMENT_Q: Point
+    IVK_COMMITMENT_BASE: Point
+    IVK_COMMITMENT_Q: Point
