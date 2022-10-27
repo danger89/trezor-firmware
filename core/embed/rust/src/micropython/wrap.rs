@@ -44,10 +44,6 @@ pub trait Wrapable: Sized {
     }
 }
 
-pub trait Unwrapable<T: Wrapable> {
-    fn unwrap() {}
-}
-
 #[repr(C)]
 pub struct Wrapped<T: Wrapable> {
     base: ObjBase,
