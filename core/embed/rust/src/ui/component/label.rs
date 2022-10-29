@@ -1,5 +1,3 @@
-use core::ops::Deref;
-
 use crate::ui::{
     component::{Component, Event, EventCtx, Never},
     display::{self, Color, Font},
@@ -21,7 +19,7 @@ pub struct Label<T> {
 
 impl<T> Label<T>
 where
-    T: Deref<Target = str>,
+    T: AsRef<str>,
 {
     pub fn new(text: T, align: Alignment, style: LabelStyle) -> Self {
         Self {
@@ -50,7 +48,7 @@ where
 
     pub fn size(&self) -> Offset {
         Offset::new(
-            self.style.font.text_width(&self.text),
+            self.style.font.text_width(self.text.as_ref()),
             self.style.font.text_height(),
         )
     }
@@ -58,7 +56,7 @@ where
 
 impl<T> Component for Label<T>
 where
-    T: Deref<Target = str>,
+    T: AsRef<str>,
 {
     type Msg = Never;
 
@@ -81,7 +79,7 @@ where
     fn paint(&mut self) {
         display::text(
             self.area.bottom_left(),
-            &self.text,
+            self.text.as_ref(),
             self.style.font,
             self.style.text_color,
             self.style.background_color,
@@ -96,9 +94,9 @@ where
 #[cfg(feature = "ui_debug")]
 impl<T> crate::trace::Trace for Label<T>
 where
-    T: Deref<Target = str>,
+    T: AsRef<str>,
 {
     fn trace(&self, t: &mut dyn crate::trace::Tracer) {
-        t.string(&self.text)
+        t.string(self.text.as_ref())
     }
 }

@@ -1,4 +1,4 @@
-use core::{cmp::Ordering, convert::TryInto, ops::Deref};
+use core::{cmp::Ordering, convert::TryInto};
 
 use heapless::Vec;
 
@@ -132,7 +132,7 @@ where
 
 impl<T> ComponentMsgObj for PinKeyboard<T>
 where
-    T: Deref<Target = str>,
+    T: AsRef<str>,
 {
     fn msg_try_into_obj(&self, msg: Self::Msg) -> Result<Obj, Error> {
         match msg {
@@ -154,7 +154,7 @@ impl ComponentMsgObj for PassphraseKeyboard {
 impl<T, U> ComponentMsgObj for MnemonicKeyboard<T, U>
 where
     T: MnemonicInput,
-    U: Deref<Target = str>,
+    U: AsRef<str>,
 {
     fn msg_try_into_obj(&self, msg: Self::Msg) -> Result<Obj, Error> {
         match msg {
