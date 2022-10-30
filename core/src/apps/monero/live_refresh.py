@@ -18,6 +18,7 @@ from apps.monero.xmr import chacha_poly, crypto, crypto_helpers, key_image, mone
 
 if TYPE_CHECKING:
     from trezor.messages import MoneroLiveRefreshStartRequest
+    from trezor.ui.layouts.common import ProgressLayout
     from trezor.wire import Context
     from apps.common.keychain import Keychain
 
@@ -31,6 +32,7 @@ async def live_refresh(
     state = LiveRefreshState()
 
     res = await _init_step(state, ctx, msg, keychain)
+    progress = layout.monero_live_refresh_progress()
     while True:
         step = await ctx.call_any(
             res,
@@ -39,7 +41,7 @@ async def live_refresh(
         )
         del res
         if MoneroLiveRefreshStepRequest.is_type_of(step):
-            res = await _refresh_step(state, ctx, step)
+            res = _refresh_step(state, ctx, step, progress)
         else:
             return MoneroLiveRefreshFinalAck()
         gc.collect()
@@ -68,15 +70,18 @@ async def _init_step(
     return MoneroLiveRefreshStartAck()
 
 
-async def _refresh_step(
-    s: LiveRefreshState, ctx: Context, msg: MoneroLiveRefreshStepRequest
+def _refresh_step(
+    s: LiveRefreshState,
+    ctx: Context,
+    msg: MoneroLiveRefreshStepRequest,
+    progress: ProgressLayout,
 ) -> MoneroLiveRefreshStepAck:
     assert s.creds is not None
 
     buff = bytearray(32 * 3)
     buff_mv = memoryview(buff)
 
-    await layout.live_refresh_step(ctx, s.current_output)
+    progress.report((1000 * s.current_output // 8) % 1000, str(s.current_output))
     s.current_output += 1
 
     if __debug__:

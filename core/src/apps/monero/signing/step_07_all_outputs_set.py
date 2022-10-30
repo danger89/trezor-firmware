@@ -9,19 +9,21 @@ from typing import TYPE_CHECKING
 
 from trezor import utils
 
-from apps.monero import layout
 from apps.monero.xmr import crypto
 
 from .state import State
 
 if TYPE_CHECKING:
     from trezor.messages import MoneroTransactionAllOutSetAck
+    from apps.monero.layout import MoneroTransactionProgress
 
 
-async def all_outputs_set(state: State) -> MoneroTransactionAllOutSetAck:
+def all_outputs_set(
+    state: State, progress: MoneroTransactionProgress
+) -> MoneroTransactionAllOutSetAck:
     state.mem_trace(0)
 
-    await layout.transaction_step(state, state.STEP_ALL_OUT)
+    progress.step(state, state.STEP_ALL_OUT)
     state.mem_trace(1)
 
     _validate(state)

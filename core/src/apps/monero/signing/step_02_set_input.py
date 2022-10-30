@@ -13,7 +13,6 @@ key derived for exactly this purpose.
 """
 from typing import TYPE_CHECKING
 
-from apps.monero import layout
 from apps.monero.xmr import crypto, crypto_helpers, monero, serialize
 
 from .state import State
@@ -21,10 +20,13 @@ from .state import State
 if TYPE_CHECKING:
     from trezor.messages import MoneroTransactionSourceEntry
     from trezor.messages import MoneroTransactionSetInputAck
+    from apps.monero.layout import MoneroTransactionProgress
 
 
-async def set_input(
-    state: State, src_entr: MoneroTransactionSourceEntry
+def set_input(
+    state: State,
+    src_entr: MoneroTransactionSourceEntry,
+    progress: MoneroTransactionProgress,
 ) -> MoneroTransactionSetInputAck:
     from trezor.messages import MoneroTransactionSetInputAck
     from apps.monero.xmr import chacha_poly
@@ -33,7 +35,7 @@ async def set_input(
 
     state.current_input_index += 1
 
-    await layout.transaction_step(state, state.STEP_INP, state.current_input_index)
+    progress.step(state, state.STEP_INP, state.current_input_index)
 
     if state.last_step > state.STEP_INP:
         raise ValueError("Invalid state transition")

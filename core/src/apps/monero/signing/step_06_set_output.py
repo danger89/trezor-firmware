@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 
 from trezor import utils
 
-from apps.monero import layout, signing
+from apps.monero import signing
 from apps.monero.signing import offloading_keys
 from apps.monero.xmr import crypto, crypto_helpers, serialize
 
@@ -16,6 +16,7 @@ from .state import State
 if TYPE_CHECKING:
     from apps.monero.xmr.serialize_messages.tx_ecdh import EcdhTuple
     from apps.monero.xmr.serialize_messages.tx_rsig_bulletproof import BulletproofPlus
+    from apps.monero.layout import MoneroTransactionProgress
     from trezor.messages import (
         MoneroTransactionDestinationEntry,
         MoneroTransactionSetOutputAck,
@@ -23,21 +24,20 @@ if TYPE_CHECKING:
     )
 
 
-async def set_output(
+def set_output(
     state: State,
     dst_entr: MoneroTransactionDestinationEntry,
     dst_entr_hmac: bytes,
     rsig_data: MoneroTransactionRsigData,
-    is_offloaded_bp=False,
+    is_offloaded_bp: bool,
+    progress: MoneroTransactionProgress,
 ) -> MoneroTransactionSetOutputAck:
     state.mem_trace(0, True)
     mods = utils.unimport_begin()
 
     # Progress update only for master message (skip for offloaded BP msg)
     if not is_offloaded_bp:
-        await layout.transaction_step(
-            state, state.STEP_OUT, state.current_output_index + 1
-        )
+        progress.step(state, state.STEP_OUT, state.current_output_index + 1)
 
     state.mem_trace(1, True)
 

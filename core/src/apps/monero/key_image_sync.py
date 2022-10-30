@@ -19,6 +19,7 @@ from apps.monero.xmr import chacha_poly, crypto, crypto_helpers, key_image, mone
 
 if TYPE_CHECKING:
     from trezor.messages import MoneroKeyImageExportInitRequest
+    from trezor.ui.layouts.common import ProgressLayout
 
     from apps.common.keychain import Keychain
 
@@ -32,9 +33,10 @@ async def key_image_sync(
     state = KeyImageSync()
 
     res = await _init_step(state, ctx, msg, keychain)
+    progress = layout.monero_keyimage_sync_progress()
     while state.current_output + 1 < state.num_outputs:
         step = await ctx.call(res, MoneroKeyImageSyncStepRequest)
-        res = await _sync_step(state, ctx, step)
+        res = _sync_step(state, ctx, step, progress)
         gc.collect()
     await ctx.call(res, MoneroKeyImageSyncFinalRequest)
     res = await _final_step(state, ctx)
@@ -77,8 +79,11 @@ async def _init_step(
     return MoneroKeyImageExportInitAck()
 
 
-async def _sync_step(
-    s: KeyImageSync, ctx: wire.Context, tds: MoneroKeyImageSyncStepRequest
+def _sync_step(
+    s: KeyImageSync,
+    ctx: wire.Context,
+    tds: MoneroKeyImageSyncStepRequest,
+    progress: ProgressLayout,
 ) -> MoneroKeyImageSyncStepAck:
     assert s.creds is not None
 
@@ -89,7 +94,8 @@ async def _sync_step(
     buff = bytearray(32 * 3)
     buff_mv = memoryview(buff)
 
-    await layout.keyimage_sync_step(ctx, s.current_output, s.num_outputs)
+    if s.current_output is not None and s.num_outputs > 0:
+        progress.report(1000 * (s.current_output + 1) // s.num_outputs)
 
     for td in tds.tdis:
         s.current_output += 1

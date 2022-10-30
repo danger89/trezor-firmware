@@ -5,6 +5,7 @@ from trezor import log, utils, wire
 from trezor.enums import MessageType
 
 from apps.common.keychain import auto_keychain
+from apps.monero.layout import MoneroTransactionProgress
 from apps.monero.signing.state import State
 
 if TYPE_CHECKING:
@@ -18,6 +19,7 @@ async def sign_tx(
 ) -> MoneroTransactionFinalAck:
     state = State(ctx)
     mods = utils.unimport_begin()
+    progress = MoneroTransactionProgress()
 
     # Splitting ctx.call() to write() and read() helps to reduce memory fragmentation
     # between calls.
@@ -27,7 +29,9 @@ async def sign_tx(
         gc.collect()
         gc.threshold(gc.mem_free() // 4 + gc.mem_alloc())
 
-        result_msg, accept_msgs = await sign_tx_dispatch(state, received_msg, keychain)
+        result_msg, accept_msgs = await sign_tx_dispatch(
+            state, received_msg, keychain, progress
+        )
         if accept_msgs is None:
             break
 
@@ -41,13 +45,15 @@ async def sign_tx(
     return result_msg
 
 
-async def sign_tx_dispatch(state: State, msg, keychain: Keychain) -> tuple:
+async def sign_tx_dispatch(
+    state: State, msg, keychain: Keychain, progress: MoneroTransactionProgress
+) -> tuple:
     if msg.MESSAGE_WIRE_TYPE == MessageType.MoneroTransactionInitRequest:
         from apps.monero.signing import step_01_init_transaction
 
         return (
             await step_01_init_transaction.init_transaction(
-                state, msg.address_n, msg.network_type, msg.tsx_data, keychain
+                state, msg.address_n, msg.network_type, msg.tsx_data, keychain, progress
             ),
             (MessageType.MoneroTransactionSetInputRequest,),
         )
@@ -56,7 +62,7 @@ async def sign_tx_dispatch(state: State, msg, keychain: Keychain) -> tuple:
         from apps.monero.signing import step_02_set_input
 
         return (
-            await step_02_set_input.set_input(state, msg.src_entr),
+            step_02_set_input.set_input(state, msg.src_entr, progress),
             (
                 MessageType.MoneroTransactionSetInputRequest,
                 MessageType.MoneroTransactionInputViniRequest,
@@ -67,8 +73,8 @@ async def sign_tx_dispatch(state: State, msg, keychain: Keychain) -> tuple:
         from apps.monero.signing import step_04_input_vini
 
         return (
-            await step_04_input_vini.input_vini(
-                state, msg.src_entr, msg.vini, msg.vini_hmac, msg.orig_idx
+            step_04_input_vini.input_vini(
+                state, msg.src_entr, msg.vini, msg.vini_hmac, msg.orig_idx, progress
             ),
             (
                 MessageType.MoneroTransactionInputViniRequest,
@@ -80,7 +86,7 @@ async def sign_tx_dispatch(state: State, msg, keychain: Keychain) -> tuple:
         from apps.monero.signing import step_05_all_inputs_set
 
         return (
-            await step_05_all_inputs_set.all_inputs_set(state),
+            step_05_all_inputs_set.all_inputs_set(state, progress),
             (MessageType.MoneroTransactionSetOutputRequest,),
         )
 
@@ -92,8 +98,8 @@ async def sign_tx_dispatch(state: State, msg, keychain: Keychain) -> tuple:
         del msg
 
         return (
-            await step_06_set_output.set_output(
-                state, dst, dst_hmac, rsig_data, is_offloaded_bp
+            step_06_set_output.set_output(
+                state, dst, dst_hmac, rsig_data, is_offloaded_bp, progress
             ),
             (
                 MessageType.MoneroTransactionSetOutputRequest,
@@ -105,7 +111,7 @@ async def sign_tx_dispatch(state: State, msg, keychain: Keychain) -> tuple:
         from apps.monero.signing import step_07_all_outputs_set
 
         return (
-            await step_07_all_outputs_set.all_outputs_set(state),
+            step_07_all_outputs_set.all_outputs_set(state, progress),
             (MessageType.MoneroTransactionSignInputRequest,),
         )
 
@@ -113,7 +119,7 @@ async def sign_tx_dispatch(state: State, msg, keychain: Keychain) -> tuple:
         from apps.monero.signing import step_09_sign_input
 
         return (
-            await step_09_sign_input.sign_input(
+            step_09_sign_input.sign_input(
                 state,
                 msg.src_entr,
                 msg.vini,
@@ -123,6 +129,7 @@ async def sign_tx_dispatch(state: State, msg, keychain: Keychain) -> tuple:
                 msg.pseudo_out_alpha,
                 msg.spend_key,
                 msg.orig_idx,
+                progress,
             ),
             (
                 MessageType.MoneroTransactionSignInputRequest,

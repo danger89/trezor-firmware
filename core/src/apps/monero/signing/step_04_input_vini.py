@@ -5,7 +5,6 @@ after the sorting on tx.vin[i].ki. The sorting order was received in the previou
 
 from typing import TYPE_CHECKING
 
-from apps.monero import layout
 from apps.monero.signing import offloading_keys
 from apps.monero.xmr import crypto
 
@@ -16,18 +15,20 @@ if TYPE_CHECKING:
         MoneroTransactionInputViniAck,
         MoneroTransactionSourceEntry,
     )
+    from apps.monero.layout import MoneroTransactionProgress
 
 
-async def input_vini(
+def input_vini(
     state: State,
     src_entr: MoneroTransactionSourceEntry,
     vini_bin: bytes,
     vini_hmac: bytes,
     orig_idx: int,
+    progress: MoneroTransactionProgress,
 ) -> MoneroTransactionInputViniAck:
     from trezor.messages import MoneroTransactionInputViniAck
 
-    await layout.transaction_step(state, state.STEP_VINI, state.current_input_index + 1)
+    progress.step(state, state.STEP_VINI, state.current_input_index + 1)
     if state.last_step not in (state.STEP_INP, state.STEP_VINI):
         raise ValueError("Invalid state transition")
     if state.current_input_index >= state.input_count:

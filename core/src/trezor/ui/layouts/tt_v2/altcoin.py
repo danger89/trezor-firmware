@@ -9,8 +9,11 @@ from trezor.ui.layouts import (
     confirm_total,
 )
 
+from . import RustProgress
+
 if TYPE_CHECKING:
     from typing import Sequence
+    from ..common import ProgressLayout
 
     pass
 
@@ -66,3 +69,15 @@ async def confirm_decred_sstx_submission(
         f"{amount}\nwith voting rights to\n{address}",
         br_code=ButtonRequestType.ConfirmOutput,
     )
+
+
+def monero_keyimage_sync_progress() -> ProgressLayout:
+    return RustProgress("SYNCING")
+
+
+def monero_live_refresh_progress() -> ProgressLayout:
+    return RustProgress("REFRESHING", description="", indeterminate=True)
+
+
+def monero_transaction_progress_inner() -> ProgressLayout:
+    return RustProgress("SIGNING TRANSACTION", description="")
