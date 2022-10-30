@@ -11,7 +11,7 @@ from ..common import button_request, interact
 if TYPE_CHECKING:
     from typing import Any, Awaitable, Iterable, NoReturn, Sequence, TypeVar
 
-    from ..common import PropertyType, ExceptionType
+    from ..common import PropertyType, ExceptionType, ProgressLayout
 
     T = TypeVar("T")
 
@@ -158,6 +158,13 @@ class _RustLayout(ui.Layout):
 
     def page_count(self) -> int:
         return self.layout.page_count()
+
+    def draw_simple(self) -> None:
+        ui.backlight_fade(ui.style.BACKLIGHT_DIM)
+        ui.display.clear()
+        self.layout.paint()
+        ui.refresh()
+        ui.backlight_fade(self.BACKLIGHT_LEVEL)
 
 
 async def raise_if_not_confirmed(a: Awaitable[T], exc: Any = wire.ActionCancelled) -> T:
@@ -935,7 +942,14 @@ async def confirm_coinjoin(
 
 
 def show_coinjoin() -> None:
-    log.error(__name__, "show_coinjoin not implemented")
+    _RustLayout(
+        trezorui2.show_info(
+            title="CoinJoin in progress.",
+            description="Do not disconnect your Trezor.",
+            button="",
+            time_ms=1,
+        )
+    ).draw_simple()
 
 
 # TODO cleanup @ redesign
@@ -1004,6 +1018,16 @@ def draw_simple_text(title: str, description: str = "") -> None:
     log.error(__name__, "draw_simple_text not implemented")
 
 
+def request_passphrase_on_host() -> None:
+    _RustLayout(
+        trezorui2.show_info(
+            title="Please type your passphrase on the connected host.",
+            button="",
+            time_ms=1,
+        )
+    ).draw_simple()
+
+
 async def request_passphrase_on_device(ctx: wire.GenericContext, max_len: int) -> str:
     await button_request(
         ctx, "passphrase_device", code=ButtonRequestType.PassphraseEntry
@@ -1053,3 +1077,50 @@ async def request_pin_on_device(
             raise wire.PinCancelled
         assert isinstance(result, str)
         return result
+
+
+class RustProgress:
+    def __init__(
+        self,
+        title: str,
+        description: str | None = None,
+        indeterminate: bool = False,
+    ):
+        self.description = description or ""
+        self.layout: Any = trezorui2.show_progress(
+            title=title.upper(),
+            indeterminate=indeterminate,
+            description=None if description is None else lambda: self.description,
+        )
+        ui.backlight_fade(ui.style.BACKLIGHT_DIM)
+        ui.display.clear()
+        self.layout.attach_timer_fn(self.set_timer)
+        self.layout.paint()
+        ui.backlight_fade(ui.style.BACKLIGHT_NORMAL)
+
+    def set_timer(self, token: int, deadline: int) -> None:
+        raise NotImplementedError
+
+    def request_complete_repaint(self) -> None:
+        msg = self.layout.request_complete_repaint()
+        assert msg is None
+
+    def report(self, value: int, description: str | None = None):
+        if description is not None:
+            self.description = description
+        msg = self.layout.progress_event(value)
+        assert msg is None
+        self.layout.paint()
+        ui.refresh()
+
+
+def progress(message: str = "PLEASE WAIT") -> ProgressLayout:
+    return RustProgress(message.upper())
+
+
+def bitcoin_progress(message: str) -> ProgressLayout:
+    return RustProgress(message.upper())
+
+
+def pin_progress(message: str, description: str) -> ProgressLayout:
+    return RustProgress(message.upper(), description=description)

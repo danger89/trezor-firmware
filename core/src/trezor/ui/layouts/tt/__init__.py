@@ -8,7 +8,7 @@ from trezor.ui.container import Container
 from trezor.ui.loader import LoaderDanger
 from trezor.ui.popup import Popup
 from trezor.ui.qr import Qr
-from trezor.utils import chunks, chunks_intersperse
+from trezor.utils import DISABLE_ANIMATION, chunks, chunks_intersperse
 
 from ...components.common import break_path_to_lines
 from ...components.common.confirm import (
@@ -40,7 +40,7 @@ from ..common import button_request, interact
 if TYPE_CHECKING:
     from typing import Any, Awaitable, Iterable, Iterator, NoReturn, Sequence
 
-    from ..common import PropertyType, ExceptionType
+    from ..common import PropertyType, ExceptionType, ProgressLayout
     from ...components.tt.button import ButtonContent
 
 
@@ -77,6 +77,9 @@ __all__ = (
     "request_passphrase_on_device",
     "request_pin_on_device",
     "should_show_more",
+    "progress",
+    "bitcoin_progress",
+    "pin_progress",
 )
 
 
@@ -1084,6 +1087,12 @@ def draw_simple_text(title: str, description: str = "") -> None:
     ui.draw_simple(text)
 
 
+def request_passphrase_on_host() -> None:
+    draw_simple_text(
+        "Passphrase entry", "Please type your\npassphrase on the\nconnected host."
+    )
+
+
 async def request_passphrase_on_device(ctx: wire.GenericContext, max_len: int) -> str:
     await button_request(
         ctx, "passphrase_device", code=ButtonRequestType.PassphraseEntry
@@ -1120,3 +1129,53 @@ async def request_pin_on_device(
             raise wire.PinCancelled
         assert isinstance(result, str)
         return result
+
+
+class Progress:
+    def __init__(self, title: str, fg: int = ui.TITLE_GREY, ifg: int = ui.ORANGE_ICON):
+        self.previous_value = None
+        ui.backlight_fade(ui.style.BACKLIGHT_DIM)
+        ui.display.clear()
+        ui.header(title, fg=fg, ifg=ifg)
+        ui.refresh()
+        ui.backlight_fade(ui.style.BACKLIGHT_NORMAL)
+
+    def report(self, value: int, description: str | None = None):
+        if not DISABLE_ANIMATION and value != self.previous_value:
+            ui.display.loader(value, False, 18, ui.WHITE, ui.BG)
+            self.previous_value = value
+            ui.refresh()
+
+
+class PinProgress:
+    def __init__(self, title: str):
+        self.previous_value = None
+        self.previous_description = None
+        ui.backlight_fade(ui.style.BACKLIGHT_DIM)
+        ui.display.clear()
+        ui.display.text_center(ui.WIDTH // 2, 37, title, ui.BOLD, ui.FG, ui.BG)
+        ui.backlight_fade(ui.style.BACKLIGHT_NORMAL)
+
+    def report(self, value: int, description: str | None = None):
+        if not DISABLE_ANIMATION and value != self.previous_value:
+            ui.display.loader(value, False, 0, ui.WHITE, ui.BG)
+            self.previous_value = value
+        if description != self.previous_description:
+            ui.display.bar(0, ui.HEIGHT - 42, ui.WIDTH, 25, ui.BG)
+            ui.display.text_center(
+                ui.WIDTH // 2, ui.HEIGHT - 22, description or "", ui.BOLD, ui.FG, ui.BG
+            )
+            self.previous_description = description
+        ui.refresh()
+
+
+def progress(message: str = "Please wait") -> ProgressLayout:
+    return Progress(message)
+
+
+def bitcoin_progress(message: str) -> ProgressLayout:
+    return Progress(message, fg=ui.FG, ifg=ui.GREEN)
+
+
+def pin_progress(message: str, description: str) -> ProgressLayout:
+    return PinProgress(message)

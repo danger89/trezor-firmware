@@ -40,7 +40,7 @@ use super::{
         Dialog, DialogMsg, Frame, HoldToConfirm, HoldToConfirmMsg, IconDialog, MnemonicInput,
         MnemonicKeyboard, MnemonicKeyboardMsg, NotificationFrame, NumberInputDialog,
         NumberInputDialogMsg, PassphraseKeyboard, PassphraseKeyboardMsg, PinKeyboard,
-        PinKeyboardMsg, SelectWordCount, SelectWordCountMsg, SelectWordMsg, Slip39Input,
+        PinKeyboardMsg, Progress, SelectWordCount, SelectWordCountMsg, SelectWordMsg, Slip39Input,
         SwipeHoldPage, SwipePage,
     },
     theme,
@@ -262,6 +262,16 @@ where
 {
     fn msg_try_into_obj(&self, msg: Self::Msg) -> Result<Obj, Error> {
         self.inner().msg_try_into_obj(msg)
+    }
+}
+
+impl<T, F> ComponentMsgObj for Progress<T, F>
+where
+    T: AsRef<str>,
+    F: Fn() -> T,
+{
+    fn msg_try_into_obj(&self, _msg: Self::Msg) -> Result<Obj, Error> {
+        unreachable!()
     }
 }
 
@@ -1059,6 +1069,25 @@ extern "C" fn new_show_remaining_shares(n_args: usize, args: *const Obj, kwargs:
     unsafe { util::try_with_args_and_kwargs(n_args, args, kwargs, block) }
 }
 
+extern "C" fn new_show_progress(n_args: usize, args: *const Obj, kwargs: *mut Map) -> Obj {
+    let block = move |_args: &[Obj], kwargs: &Map| {
+        let title: StrBuffer = kwargs.get(Qstr::MP_QSTR_title)?.try_into()?;
+        let indeterminate: bool = kwargs.get_or(Qstr::MP_QSTR_indeterminate, false)?;
+        let description_callback: Obj = kwargs.get(Qstr::MP_QSTR_description)?;
+
+        let obj = if description_callback == Obj::const_none() {
+            LayoutObj::new(Progress::new(title, indeterminate, StrBuffer::empty))?
+        } else {
+            let callback = move || {
+                StrBuffer::try_from(description_callback.call_with_n_args(&[]).unwrap()).unwrap()
+            };
+            LayoutObj::new(Progress::new(title, indeterminate, callback))?
+        };
+        Ok(obj.into())
+    };
+    unsafe { util::try_with_args_and_kwargs(n_args, args, kwargs, block) }
+}
+
 #[no_mangle]
 pub static mp_module_trezorui2: Module = obj_module! {
     Qstr::MP_QSTR___name__ => Qstr::MP_QSTR_trezorui2.to_obj(),
@@ -1339,6 +1368,17 @@ pub static mp_module_trezorui2: Module = obj_module! {
     /// ) -> int:
     ///    """Shows SLIP39 state after info button is pressed on `confirm_recovery`."""
     Qstr::MP_QSTR_show_remaining_shares => obj_fn_kw!(0, new_show_remaining_shares).as_obj(),
+
+    /// def show_progress(
+    ///     *,
+    ///     title: str,
+    ///     indeterminate: bool = False,
+    ///     description: Callable[[], str] | None = None,
+    /// ) -> object:
+    ///    """Show progress loader. Please note that the number of lines reserved on screen for
+    ///    description is determined when object is place()d. If you want multiline descriptions
+    ///    make sure description() returns something with that amount of lines."""
+    Qstr::MP_QSTR_show_progress => obj_fn_kw!(0, new_show_progress).as_obj(),
 };
 
 #[cfg(test)]

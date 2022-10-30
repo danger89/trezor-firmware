@@ -144,6 +144,14 @@ pub fn label_recovery_description() -> LabelStyle {
     }
 }
 
+pub fn label_progress() -> LabelStyle {
+    LabelStyle {
+        font: Font::BOLD,
+        text_color: FG,
+        background_color: BG,
+    }
+}
+
 pub fn button_default() -> ButtonStyleSheet {
     ButtonStyleSheet {
         normal: &ButtonStyle {

@@ -350,3 +350,15 @@ def show_remaining_shares(
     pages: Iterable[tuple[str, str]],
 ) -> int:
    """Shows SLIP39 state after info button is pressed on `confirm_recovery`."""
+
+
+# rust/src/ui/model_tt/layout.rs
+def show_progress(
+    *,
+    title: str,
+    indeterminate: bool = False,
+    description: Callable[[], str] | None = None,
+) -> object:
+   """Show progress loader. Please note that the number of lines reserved on screen for
+   description is determined when object is place()d. If you want multiline descriptions
+   make sure description() returns something with that amount of lines."""

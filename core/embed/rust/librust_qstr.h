@@ -45,10 +45,12 @@ static void _librust_qstrs(void) {
   MP_QSTR_show_group_share_success;
   MP_QSTR_show_remaining_shares;
   MP_QSTR_show_share_words;
+  MP_QSTR_show_progress;
 
   MP_QSTR_attach_timer_fn;
   MP_QSTR_touch_event;
   MP_QSTR_button_event;
+  MP_QSTR_progress_event;
   MP_QSTR_timer;
   MP_QSTR_paint;
   MP_QSTR_request_complete_repaint;
@@ -90,4 +92,5 @@ static void _librust_qstrs(void) {
   MP_QSTR_active;
   MP_QSTR_info_button;
   MP_QSTR_time_ms;
+  MP_QSTR_indeterminate;
 }

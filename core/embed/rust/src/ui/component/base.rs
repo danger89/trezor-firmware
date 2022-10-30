@@ -338,6 +338,8 @@ pub enum Event {
     /// Previously requested timer was triggered. This invalidates the timer
     /// token (another timer has to be requested).
     Timer(TimerToken),
+    /// Advance progress bar. Progress screens only.
+    Progress(u16),
     /// Component has been attached to component tree. This event is sent once
     /// before any other events.
     Attach,
