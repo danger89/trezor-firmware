@@ -7,6 +7,8 @@ from trezor.wire import DataError
 if TYPE_CHECKING:
     from trezor.wire import Context
 
+from apps.management import text_r
+
 _MAX_PASSPHRASE_LEN = const(50)
 
 
@@ -67,7 +69,9 @@ async def _request_on_host(ctx: Context) -> str:
             ctx,
             "passphrase_host1",
             "Hidden wallet",
-            description="Access hidden wallet?\n\nNext screen will show\nthe passphrase!",
+            description=text_r(
+                "Access hidden wallet?\n\nNext screen will show\nthe passphrase!"
+            ),
             icon=ui.ICON_CONFIG,
         )
 
@@ -76,7 +80,7 @@ async def _request_on_host(ctx: Context) -> str:
             "passphrase_host2",
             "Hidden wallet",
             passphrase,
-            "Use this passphrase?\n",
+            text_r("Use this passphrase?\n"),
             icon=ui.ICON_CONFIG,
             icon_color=ui.ORANGE_ICON,
         )

@@ -8,6 +8,8 @@ from trezor.ui.layouts import confirm_blob, confirm_text, should_show_more
 from . import networks
 from .helpers import decode_typed_data
 
+from ..management import text_r
+
 if TYPE_CHECKING:
     from typing import Awaitable, Iterable
 
@@ -85,8 +87,8 @@ async def require_confirm_eip1559_fee(
         ctx,
         format_ethereum_amount(spending, token, chain_id),
         format_ethereum_amount(max_gas_fee * gas_limit, None, chain_id),
-        total_label="Amount sent:\n",
-        fee_label="\nMaximum fee:\n",
+        total_label=text_r("Amount sent:\n"),
+        fee_label=text_r("\nMaximum fee:\n"),
     )
 
 
