@@ -254,14 +254,14 @@ int main(void) {
   dma2d_init();
 #endif
 
+  display_reinit();
+
 #if defined TREZOR_MODEL_T
-  display_set_little_endian();
   touch_power_on();
   touch_init();
 #endif
 
 #if defined TREZOR_MODEL_R
-  display_init();
   button_init();
   rgb_led_init();
 #endif
