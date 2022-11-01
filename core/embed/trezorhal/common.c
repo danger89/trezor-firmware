@@ -191,5 +191,6 @@ void collect_hw_entropy(void) {
 void ensure_compatible_settings(void) {
 #ifdef TREZOR_MODEL_T
   display_set_big_endian();
+  display_set_slow_pwm();
 #endif
 }
