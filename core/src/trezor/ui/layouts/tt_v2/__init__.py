@@ -3,6 +3,7 @@ from ubinascii import hexlify
 
 from trezor import io, log, loop, ui, wire, workflow
 from trezor.enums import ButtonRequestType
+from trezor.utils import DISABLE_ANIMATION
 
 import trezorui2
 
@@ -14,6 +15,10 @@ if TYPE_CHECKING:
     from ..common import PropertyType, ExceptionType, ProgressLayout
 
     T = TypeVar("T")
+
+
+if __debug__:
+    trezorui2.disable_animation(bool(DISABLE_ANIMATION))
 
 
 class _RustLayout(ui.Layout):

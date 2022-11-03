@@ -10,6 +10,7 @@ use crate::ui::{
     display::{self, Font},
     geometry::{Insets, Rect},
     model_tt::constant,
+    util::animation_disabled,
 };
 
 use super::theme;
@@ -81,13 +82,16 @@ where
     fn event(&mut self, ctx: &mut EventCtx, event: Event) -> Option<Self::Msg> {
         if let Event::Progress(new_value) = event {
             if mem::replace(&mut self.value, new_value) != new_value {
-                ctx.request_paint();
+                if !animation_disabled() {
+                    ctx.request_paint();
+                }
                 let new_description = (self.description_func)();
-                // TODO: compare old and new description
                 self.description.mutate(ctx, move |ctx, para| {
-                    para.inner_mut().update(new_description);
-                    para.change_page(0); // Recompute bounding box.
-                    ctx.request_paint()
+                    if para.inner_mut().content().as_ref() != new_description.as_ref() {
+                        para.inner_mut().update(new_description);
+                        para.change_page(0); // Recompute bounding box.
+                        ctx.request_paint()
+                    }
                 });
                 self.description_pad.clear();
             }

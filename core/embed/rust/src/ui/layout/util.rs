@@ -3,7 +3,9 @@ use crate::{
     micropython::{
         iter::{Iter, IterBuf},
         obj::Obj,
+        util::try_or_raise,
     },
+    ui::util::set_animation_disabled,
 };
 use cstr_core::cstr;
 use heapless::Vec;
@@ -31,4 +33,12 @@ where
     }
     // Returns error if array.len() != N
     vec.into_array().map_err(|_| err)
+}
+
+pub extern "C" fn upy_disable_animation(disable: Obj) -> Obj {
+    let block = || {
+        set_animation_disabled(disable.try_into()?);
+        Ok(Obj::const_none())
+    };
+    unsafe { try_or_raise(block) }
 }

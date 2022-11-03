@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING
 
 from trezor import io, log, loop, ui, wire, workflow
 from trezor.enums import ButtonRequestType
+from trezor.utils import DISABLE_ANIMATION
 
 import trezorui2
 
@@ -11,6 +12,10 @@ if TYPE_CHECKING:
     from typing import Any, NoReturn, Type
 
     ExceptionType = BaseException | Type[BaseException]
+
+
+if __debug__:
+    trezorui2.disable_animation(bool(DISABLE_ANIMATION))
 
 
 class _RustLayout(ui.Layout):

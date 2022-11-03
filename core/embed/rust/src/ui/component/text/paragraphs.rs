@@ -110,6 +110,10 @@ where
         self
     }
 
+    pub fn inner(&self) -> &T {
+        &self.source
+    }
+
     pub fn inner_mut(&mut self) -> &mut T {
         &mut self.source
     }
@@ -288,6 +292,10 @@ impl<T> Paragraph<T> {
     pub const fn no_break(mut self) -> Self {
         self.no_break = true;
         self
+    }
+
+    pub fn content(&self) -> &T {
+        &self.content
     }
 
     pub fn update(&mut self, content: T) {
