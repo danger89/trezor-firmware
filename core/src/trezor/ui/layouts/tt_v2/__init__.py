@@ -744,7 +744,7 @@ async def confirm_properties(
     hold: bool = False,
     br_code: ButtonRequestType = ButtonRequestType.ConfirmOutput,
 ) -> None:
-    def handle_bytes(prop):
+    def handle_bytes(prop: PropertyType):
         from ubinascii import hexlify
 
         if isinstance(prop[1], bytes):
