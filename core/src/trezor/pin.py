@@ -38,5 +38,8 @@ def show_pin_timeout(seconds: int, progress: int, message: str) -> bool:
     if progress == 0 or _progress_layout is None:
         _progress_layout = pin_progress(message, description=remaining or "")
     _progress_layout.report(progress, remaining)
+    # drop the layout when done so trezor.ui doesn't have to remain in memory
+    if seconds == 0:
+        _progress_layout = None
 
     return False
