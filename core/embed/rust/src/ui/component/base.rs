@@ -107,7 +107,7 @@ impl<T> Child<T> {
     }
 
     /// Do not draw on screen until an event requests paint. This is used by
-    /// homescreens to avoid flickerg when workflow restart happens.
+    /// homescreens to avoid flickering when workflow restart happens.
     pub fn skip_paint(&mut self) {
         self.marked_for_paint = false;
     }
