@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from ..common import PropertyType, ExceptionType
 
 
-class _RustLayout(ui.Layout):
+class RustLayout(ui.Layout):
     # pylint: disable=super-init-not-called
     def __init__(self, layout: Any, is_backup=False):
         self.layout = layout
@@ -197,7 +197,7 @@ async def confirm_action(
 
     result = await interact(
         ctx,
-        _RustLayout(
+        RustLayout(
             trezorui2.confirm_action(
                 title=title.upper(),
                 action=action,
@@ -225,7 +225,7 @@ async def confirm_reset_device(
 
     result = await interact(
         ctx,
-        _RustLayout(
+        RustLayout(
             trezorui2.confirm_reset_device(
                 title=title.upper(),
                 prompt=prompt.replace("\n", " "),
@@ -242,7 +242,7 @@ async def confirm_reset_device(
 async def confirm_backup(ctx: wire.GenericContext) -> bool:
     result = await interact(
         ctx,
-        _RustLayout(
+        RustLayout(
             trezorui2.confirm_action(
                 title="SUCCESS",
                 action="New wallet created successfully.",
@@ -259,7 +259,7 @@ async def confirm_backup(ctx: wire.GenericContext) -> bool:
 
     result = await interact(
         ctx,
-        _RustLayout(
+        RustLayout(
             trezorui2.confirm_action(
                 title="WARNING",
                 action="Are you sure you want to skip the backup?",
@@ -279,7 +279,7 @@ async def confirm_path_warning(
 ) -> None:
     result = await interact(
         ctx,
-        _RustLayout(
+        RustLayout(
             trezorui2.show_warning(
                 title="Unknown path",
                 description=path,
@@ -293,7 +293,7 @@ async def confirm_path_warning(
 
 
 def _show_xpub(xpub: str, title: str, cancel: str) -> ui.Layout:
-    content = _RustLayout(
+    content = RustLayout(
         trezorui2.confirm_blob(
             title=title,
             data=xpub,
@@ -333,7 +333,7 @@ async def show_address(
     while True:
         result = await interact(
             ctx,
-            _RustLayout(
+            RustLayout(
                 trezorui2.confirm_blob(
                     title=title.upper(),
                     data=address,
@@ -350,7 +350,7 @@ async def show_address(
 
         result = await interact(
             ctx,
-            _RustLayout(
+            RustLayout(
                 trezorui2.show_qr(
                     address=address if address_qr is None else address_qr,
                     case_sensitive=case_sensitive,
@@ -404,7 +404,7 @@ async def show_error_and_raise(
 ) -> NoReturn:
     await interact(
         ctx,
-        _RustLayout(
+        RustLayout(
             trezorui2.show_error(
                 title=content.replace("\n", " "),
                 description=subheader or "",
@@ -431,7 +431,7 @@ async def show_warning(
 ) -> None:
     result = await interact(
         ctx,
-        _RustLayout(
+        RustLayout(
             trezorui2.show_warning(
                 title=content.replace("\n", " "),
                 description=subheader or "",
@@ -455,7 +455,7 @@ async def show_success(
 ) -> None:
     result = await interact(
         ctx,
-        _RustLayout(
+        RustLayout(
             trezorui2.show_success(
                 title=content.replace("\n", " "),
                 description=subheader or "",
@@ -491,7 +491,7 @@ async def confirm_output(
 
     result = await interact(
         ctx,
-        _RustLayout(
+        RustLayout(
             trezorui2.confirm_output(
                 title=title,
                 description="To:",
@@ -506,7 +506,7 @@ async def confirm_output(
 
     result = await interact(
         ctx,
-        _RustLayout(
+        RustLayout(
             trezorui2.confirm_output(
                 title=title,
                 description="Amount:",
@@ -530,7 +530,7 @@ async def confirm_payment_request(
 
     result = await interact(
         ctx,
-        _RustLayout(
+        RustLayout(
             trezorui2.confirm_with_info(
                 title="SENDING",
                 items=[f"{amount} to\n{recipient_name}"] + memos,
@@ -575,7 +575,7 @@ async def should_show_more(
 
     result = await interact(
         ctx,
-        _RustLayout(
+        RustLayout(
             trezorui2.confirm_with_info(
                 title=title.upper(),
                 items=items,
@@ -613,7 +613,7 @@ async def confirm_blob(
 
     result = await interact(
         ctx,
-        _RustLayout(
+        RustLayout(
             trezorui2.confirm_blob(
                 title=title.upper(),
                 description=description or "",
@@ -695,7 +695,7 @@ async def confirm_total(
 ) -> None:
     result = await interact(
         ctx,
-        _RustLayout(
+        RustLayout(
             trezorui2.confirm_output(
                 title=title.upper(),
                 description="Fee:",
@@ -710,7 +710,7 @@ async def confirm_total(
 
     result = await interact(
         ctx,
-        _RustLayout(
+        RustLayout(
             trezorui2.confirm_total(
                 title=title.upper(),
                 description="Total amount:",
@@ -729,7 +729,7 @@ async def confirm_joint_total(
 ) -> None:
     result = await interact(
         ctx,
-        _RustLayout(
+        RustLayout(
             trezorui2.confirm_joint_total(
                 spending_amount=spending_amount,
                 total_amount=total_amount,
@@ -783,7 +783,7 @@ async def confirm_metadata(
 
     result = await interact(
         ctx,
-        _RustLayout(layout),
+        RustLayout(layout),
         br_type,
         br_code,
     )
@@ -797,7 +797,7 @@ async def confirm_replacement(
 ) -> None:
     result = await interact(
         ctx,
-        _RustLayout(
+        RustLayout(
             trezorui2.confirm_blob(
                 title=description.upper(),
                 description="Confirm transaction ID:",
@@ -820,7 +820,7 @@ async def confirm_modify_output(
 ) -> None:
     result = await interact(
         ctx,
-        _RustLayout(
+        RustLayout(
             trezorui2.confirm_modify_output(
                 address=address,
                 sign=sign,
@@ -844,7 +844,7 @@ async def confirm_modify_fee(
 ) -> None:
     result = await interact(
         ctx,
-        _RustLayout(
+        RustLayout(
             trezorui2.confirm_modify_fee(
                 sign=sign,
                 user_fee_change=user_fee_change,
@@ -863,7 +863,7 @@ async def confirm_coinjoin(
 ) -> None:
     result = await interact(
         ctx,
-        _RustLayout(
+        RustLayout(
             trezorui2.confirm_coinjoin(
                 coin_name=coin_name,
                 max_rounds=str(max_rounds),
@@ -896,7 +896,7 @@ async def confirm_signverify(
 
     result = await interact(
         ctx,
-        _RustLayout(
+        RustLayout(
             trezorui2.confirm_blob(
                 title=title,
                 description="Confirm address:",
@@ -911,7 +911,7 @@ async def confirm_signverify(
 
     result = await interact(
         ctx,
-        _RustLayout(
+        RustLayout(
             trezorui2.confirm_blob(
                 title=title,
                 description="Confirm message:",
@@ -934,7 +934,7 @@ async def show_popup(
 ) -> None:
     if subtitle:
         title += f"\n{subtitle}".format(subtitle)
-    await _RustLayout(
+    await RustLayout(
         trezorui2.show_error(
             title=title,
             description=description.format(description_param),
@@ -953,7 +953,7 @@ async def request_passphrase_on_device(ctx: wire.GenericContext, max_len: int) -
         ctx, "passphrase_device", code=ButtonRequestType.PassphraseEntry
     )
 
-    keyboard = _RustLayout(
+    keyboard = RustLayout(
         trezorui2.request_passphrase(prompt="Enter passphrase", max_len=max_len)
     )
     result = await ctx.wait(keyboard)
@@ -983,7 +983,7 @@ async def request_pin_on_device(
         prompt = "Enter PIN"
         subprompt = f"{attempts_remaining} tries left"
 
-    dialog = _RustLayout(
+    dialog = RustLayout(
         trezorui2.request_pin(
             prompt=prompt,
             subprompt=subprompt,
