@@ -1009,7 +1009,7 @@ extern "C" fn new_show_homescreen(n_args: usize, args: *const Obj, kwargs: *mut 
         let label: StrBuffer = kwargs.get(Qstr::MP_QSTR_label)?.try_into()?;
         let notification: Option<StrBuffer> =
             kwargs.get(Qstr::MP_QSTR_notification)?.try_into_option()?;
-        let notification_level: u32 = kwargs.get_or(Qstr::MP_QSTR_notification_level, 0)?;
+        let notification_level: u8 = kwargs.get_or(Qstr::MP_QSTR_notification_level, 0)?;
         let hold: bool = kwargs.get(Qstr::MP_QSTR_hold)?.try_into()?;
         let skip_first_paint: bool = kwargs.get(Qstr::MP_QSTR_skip_first_paint)?.try_into()?;
 
@@ -1325,7 +1325,7 @@ pub static mp_module_trezorui2: Module = obj_module! {
     /// def select_word_count(
     ///     *,
     ///     dry_run: bool,
-    /// ) -> int | trezorui2.CANCELLED:
+    /// ) -> int | CANCELLED:
     ///    """Select mnemonic word count from (12, 18, 20, 24, 33)."""
     Qstr::MP_QSTR_select_word_count => obj_fn_kw!(0, new_select_word_count).as_obj(),
 
@@ -1350,7 +1350,7 @@ pub static mp_module_trezorui2: Module = obj_module! {
     ///     notification: str | None,
     ///     notification_level: int = 0,
     ///     skip_first_paint: bool,
-    /// ) -> trezorui2.CANCELLED:
+    /// ) -> CANCELLED:
     ///     """Idle homescreen."""
     Qstr::MP_QSTR_show_homescreen => obj_fn_kw!(0, new_show_homescreen).as_obj(),
 
@@ -1359,7 +1359,7 @@ pub static mp_module_trezorui2: Module = obj_module! {
     ///     label: str,
     ///     bootscreen: bool,
     ///     skip_first_paint: bool,
-    /// ) -> trezorui2.CANCELLED:
+    /// ) -> CANCELLED:
     ///     """Homescreen for locked device."""
     Qstr::MP_QSTR_show_lockscreen => obj_fn_kw!(0, new_show_lockscreen).as_obj(),
 
@@ -1369,7 +1369,7 @@ pub static mp_module_trezorui2: Module = obj_module! {
     ///     description: str,
     ///     time_ms: int,
     ///     skip_first_paint: bool,
-    /// ) -> trezorui2.CANCELLED:
+    /// ) -> CANCELLED:
     ///     """Homescreen used for indicating coinjoin in progress."""
     Qstr::MP_QSTR_show_busyscreen => obj_fn_kw!(0, new_show_busyscreen).as_obj(),
 };

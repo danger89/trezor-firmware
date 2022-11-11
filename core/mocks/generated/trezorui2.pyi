@@ -330,7 +330,7 @@ def confirm_recovery(
 def select_word_count(
     *,
     dry_run: bool,
-) -> int | trezorui2.CANCELLED:
+) -> int | CANCELLED:
    """Select mnemonic word count from (12, 18, 20, 24, 33)."""
 
 
@@ -358,7 +358,7 @@ def show_homescreen(
     notification: str | None,
     notification_level: int = 0,
     skip_first_paint: bool,
-) -> trezorui2.CANCELLED:
+) -> CANCELLED:
     """Idle homescreen."""
 
 
@@ -368,7 +368,7 @@ def show_lockscreen(
     label: str,
     bootscreen: bool,
     skip_first_paint: bool,
-) -> trezorui2.CANCELLED:
+) -> CANCELLED:
     """Homescreen for locked device."""
 
 
@@ -379,5 +379,5 @@ def show_busyscreen(
     description: str,
     time_ms: int,
     skip_first_paint: bool,
-) -> trezorui2.CANCELLED:
+) -> CANCELLED:
     """Homescreen used for indicating coinjoin in progress."""

@@ -24,7 +24,7 @@ const LOADER_DURATION: Duration = Duration::from_millis(2000);
 
 pub struct Homescreen<T> {
     label: T,
-    notification: Option<(T, u32)>,
+    notification: Option<(T, u8)>,
     hold_to_lock: bool,
     usb_connected: bool,
     loader: Loader,
@@ -40,7 +40,7 @@ impl<T> Homescreen<T>
 where
     T: AsRef<str>,
 {
-    pub fn new(label: T, notification: Option<(T, u32)>, hold_to_lock: bool) -> Self {
+    pub fn new(label: T, notification: Option<(T, u8)>, hold_to_lock: bool) -> Self {
         Self {
             label,
             notification,
@@ -52,7 +52,7 @@ where
         }
     }
 
-    fn level_to_style(level: u32) -> (Color, &'static [u8]) {
+    fn level_to_style(level: u8) -> (Color, &'static [u8]) {
         match level {
             2 => (theme::VIOLET, theme::ICON_MAGIC),
             1 => (theme::YELLOW, theme::ICON_WARN),
