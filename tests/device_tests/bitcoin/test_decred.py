@@ -131,16 +131,16 @@ def test_purchase_ticket_decred(client: Client):
     )
 
     with client:
-        tt = client.features.model == "T"
         client.set_expected_responses(
             [
                 request_input(0),
                 request_output(0),
                 messages.ButtonRequest(code=B.ConfirmOutput),
+                messages.ButtonRequest(code=B.ConfirmOutput),
                 request_output(1),
                 request_output(2),
                 messages.ButtonRequest(code=B.SignTx),
-                (tt, messages.ButtonRequest(code=B.SignTx)),
+                messages.ButtonRequest(code=B.SignTx),
                 request_input(0),
                 request_meta(FAKE_TXHASH_4d8acd),
                 request_input(0, FAKE_TXHASH_4d8acd),
