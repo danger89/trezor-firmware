@@ -390,9 +390,11 @@ def pytest_runtest_teardown(item: pytest.Item) -> None:
 
     Dumps the current UI test report HTML.
     """
-    # Not generating any reports to make tests quicker.
-    # All the final reports will be generated in `pytest_sessionfinish`.
-    pass
+    # Not calling `testreport.generate_reports()` not to generate
+    # the `all_screens` report, as would take a lot of time.
+    # That will be generated in `pytest_sessionfinish`.
+    if item.session.config.getoption("ui"):
+        testreport.index()
 
 
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)

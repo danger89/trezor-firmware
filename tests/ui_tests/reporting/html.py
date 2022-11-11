@@ -27,7 +27,7 @@ def report_links(
 
 
 def write(fixture_test_path: Path, doc: document, filename: str) -> Path:
-    (fixture_test_path / filename).write_text((doc.render()))
+    (fixture_test_path / filename).write_text(doc.render())
     return fixture_test_path / filename
 
 
