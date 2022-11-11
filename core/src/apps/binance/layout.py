@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING, Sequence
 
 from trezor.enums import ButtonRequestType
 from trezor.strings import format_amount
-from trezor.ui.layouts import confirm_blob, confirm_properties
+from trezor.ui.layouts import confirm_properties
 
 from .helpers import DECIMALS
 
@@ -41,13 +41,14 @@ async def require_confirm_transfer(ctx: Context, msg: BinanceTransferMsg) -> Non
 async def confirm_transfer(
     ctx: Context, inputs_outputs: Sequence[tuple[str, str, str]]
 ) -> None:
+    from trezor.ui.layouts import confirm_output
+
     for title, amount, address in inputs_outputs:
-        await confirm_blob(
+        await confirm_output(
             ctx,
-            "confirm_transfer",
+            address,
+            amount,
             title,
-            f"{amount}\nto\n{address}",
-            br_code=ButtonRequestType.ConfirmOutput,
         )
 
 

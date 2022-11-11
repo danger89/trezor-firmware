@@ -93,12 +93,24 @@ async def confirm_decred_sstx_submission(
     address_short = addresses.address_short(coin, output.address)
     amount = format_coin_amount(output.amount, coin, amount_unit)
 
-    await layouts.confirm_blob(
+    await layouts.confirm_value(
         ctx,
-        "confirm_decred_sstx_submission",
         "Purchase ticket",
-        f"{amount}\nwith voting rights to\n{address_short}",
-        br_code=ButtonRequestType.ConfirmOutput,
+        amount,
+        "Ticket amount:",
+        "confirm_decred_sstx_submission",
+        ButtonRequestType.ConfirmOutput,
+        verb="CONFIRM",
+    )
+
+    await layouts.confirm_value(
+        ctx,
+        "Purchase ticket",
+        address_short,
+        "Voting rights to:",
+        "confirm_decred_sstx_submission",
+        ButtonRequestType.ConfirmOutput,
+        verb="PURCHASE",
     )
 
 
