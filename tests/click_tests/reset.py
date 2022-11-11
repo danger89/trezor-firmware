@@ -49,7 +49,6 @@ def read_words(debug: "DebugLink", is_advanced: bool = False) -> list[str]:
     for _ in range(layout.get_page_count() - 1):
         words.extend(layout.get_seed_words())
         layout = debug.input(swipe=messages.DebugSwipeDirection.UP, wait=True)
-        assert layout is not None
     words.extend(layout.get_seed_words())
 
     debug.press_yes()
@@ -61,7 +60,6 @@ def confirm_words(debug: "DebugLink", words: list[str]) -> None:
     layout = debug.wait_layout()
     assert "Select word" in layout.text
     for _ in range(3):
-        assert layout is not None
         # "Select word 3 of 20"
         #              ^
         word_pos = int(layout.get_content().split()[2])

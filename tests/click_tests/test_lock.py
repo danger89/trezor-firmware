@@ -57,7 +57,6 @@ def test_hold_to_lock(device_handler: "BackgroundDeviceHandler"):
 
     # unlock by touching
     layout = debug.click(buttons.INFO, wait=True)
-    assert layout is not None
     assert layout.text == "< PinKeyboard >"
     debug.input("1234", wait=True)
 

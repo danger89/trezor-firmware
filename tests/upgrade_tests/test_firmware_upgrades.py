@@ -15,7 +15,7 @@
 # If not, see <https://www.gnu.org/licenses/lgpl-3.0.html>.
 
 import dataclasses
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, List, Optional
 
 import pytest
 
@@ -56,7 +56,6 @@ def test_upgrade_load(gen: str, tag: str) -> None:
         assert btc.get_address(client, "Bitcoin", PATH) == ADDRESS
 
     with EmulatorWrapper(gen, tag) as emu:
-        assert emu.client is not None
         debuglink.load_device_by_mnemonic(
             emu.client,
             mnemonic=MNEMONIC,
@@ -70,7 +69,6 @@ def test_upgrade_load(gen: str, tag: str) -> None:
         storage = emu.get_storage()
 
     with EmulatorWrapper(gen, storage=storage) as emu:
-        assert emu.client is not None
         assert device_id == emu.client.features.device_id
         asserts(emu.client)
         assert emu.client.features.language == LANGUAGE
@@ -89,7 +87,6 @@ def test_upgrade_load_pin(gen: str, tag: str) -> None:
         assert btc.get_address(client, "Bitcoin", PATH) == ADDRESS
 
     with EmulatorWrapper(gen, tag) as emu:
-        assert emu.client is not None
         debuglink.load_device_by_mnemonic(
             emu.client,
             mnemonic=MNEMONIC,
@@ -103,7 +100,6 @@ def test_upgrade_load_pin(gen: str, tag: str) -> None:
         storage = emu.get_storage()
 
     with EmulatorWrapper(gen, storage=storage) as emu:
-        assert emu.client is not None
         assert device_id == emu.client.features.device_id
         asserts(emu.client)
         assert emu.client.features.language == LANGUAGE
@@ -133,7 +129,6 @@ def test_storage_upgrade_progressive(gen: str, tags: List[str]):
         assert btc.get_address(client, "Bitcoin", PATH) == ADDRESS
 
     with EmulatorWrapper(gen, tags[0]) as emu:
-        assert emu.client is not None
         debuglink.load_device_by_mnemonic(
             emu.client,
             mnemonic=MNEMONIC,
@@ -151,7 +146,6 @@ def test_storage_upgrade_progressive(gen: str, tags: List[str]):
             storage = emu.get_storage()
 
     with EmulatorWrapper(gen, storage=storage) as emu:
-        assert emu.client is not None
         assert device_id == emu.client.features.device_id
         asserts(emu.client)
         assert emu.client.features.language == LANGUAGE
@@ -171,7 +165,6 @@ def test_upgrade_wipe_code(gen: str, tag: str):
         assert btc.get_address(client, "Bitcoin", PATH) == ADDRESS
 
     with EmulatorWrapper(gen, tag) as emu:
-        assert emu.client is not None
         debuglink.load_device_by_mnemonic(
             emu.client,
             mnemonic=MNEMONIC,
@@ -190,7 +183,6 @@ def test_upgrade_wipe_code(gen: str, tag: str):
         storage = emu.get_storage()
 
     with EmulatorWrapper(gen, storage=storage) as emu:
-        assert emu.client is not None
         assert device_id == emu.client.features.device_id
         asserts(emu.client)
         assert emu.client.features.language == LANGUAGE
@@ -216,7 +208,6 @@ def test_upgrade_reset(gen: str, tag: str):
         assert not client.features.no_backup
 
     with EmulatorWrapper(gen, tag) as emu:
-        assert emu.client is not None
         device.reset(
             emu.client,
             display_random=False,
@@ -232,7 +223,6 @@ def test_upgrade_reset(gen: str, tag: str):
         storage = emu.get_storage()
 
     with EmulatorWrapper(gen, storage=storage) as emu:
-        assert emu.client is not None
         assert device_id == emu.client.features.device_id
         asserts(emu.client)
         assert emu.client.features.language == LANGUAGE
@@ -251,7 +241,6 @@ def test_upgrade_reset_skip_backup(gen: str, tag: str):
         assert not client.features.no_backup
 
     with EmulatorWrapper(gen, tag) as emu:
-        assert emu.client is not None
         device.reset(
             emu.client,
             display_random=False,
@@ -268,7 +257,6 @@ def test_upgrade_reset_skip_backup(gen: str, tag: str):
         storage = emu.get_storage()
 
     with EmulatorWrapper(gen, storage=storage) as emu:
-        assert emu.client is not None
         assert device_id == emu.client.features.device_id
         asserts(emu.client)
         assert emu.client.features.language == LANGUAGE
@@ -287,7 +275,6 @@ def test_upgrade_reset_no_backup(gen: str, tag: str):
         assert client.features.no_backup
 
     with EmulatorWrapper(gen, tag) as emu:
-        assert emu.client is not None
         device.reset(
             emu.client,
             display_random=False,
@@ -304,7 +291,6 @@ def test_upgrade_reset_no_backup(gen: str, tag: str):
         storage = emu.get_storage()
 
     with EmulatorWrapper(gen, storage=storage) as emu:
-        assert emu.client is not None
         assert device_id == emu.client.features.device_id
         asserts(emu.client)
         assert emu.client.features.language == LANGUAGE
@@ -313,23 +299,33 @@ def test_upgrade_reset_no_backup(gen: str, tag: str):
 
 # Although Shamir was introduced in 2.1.2 already, the debug instrumentation was not present until 2.1.9.
 @for_all("core", core_minimum_version=(2, 1, 9))
-def test_upgrade_shamir_recovery(gen: str, tag: str):
+def test_upgrade_shamir_recovery(gen: str, tag: Optional[str]):
     with EmulatorWrapper(gen, tag) as emu, BackgroundDeviceHandler(
         emu.client
     ) as device_handler:
-        assert emu.client is not None
         assert emu.client.features.recovery_mode is False
         emu.client.watch_layout(True)
         debug = device_handler.debuglink()
 
         device_handler.run(device.recover, pin_protection=False)
 
-        recovery.confirm_recovery(debug, legacy_ui=True)
-        recovery.select_number_of_words(debug, legacy_ui=True)
+        def is_legacy_ui(tag: Optional[str]) -> bool:
+            if tag is None:
+                return False
+            if tag.startswith("v"):
+                tag = tag[1:]
+            tag_version = tuple(int(n) for n in tag.split("."))
+            # New UI introduced in 2.5.4
+            return tag_version < (2, 5, 4)
+
+        # Flow is different for old UI and new UI
+        legacy_ui = is_legacy_ui(tag)
+
+        recovery.confirm_recovery(debug, legacy_ui=legacy_ui)
+        recovery.select_number_of_words(debug, legacy_ui=legacy_ui)
         layout = recovery.enter_share(
-            debug, MNEMONIC_SLIP39_BASIC_20_3of6[0], legacy_ui=True
+            debug, MNEMONIC_SLIP39_BASIC_20_3of6[0], legacy_ui=legacy_ui
         )
-        assert layout is not None
         assert "2 more shares" in layout.text
 
         device_id = emu.client.features.device_id
@@ -337,7 +333,6 @@ def test_upgrade_shamir_recovery(gen: str, tag: str):
         device_handler.check_finalize()
 
     with EmulatorWrapper(gen, storage=storage) as emu:
-        assert emu.client is not None
         assert device_id == emu.client.features.device_id
         assert emu.client.features.recovery_mode
         debug = emu.client.debug
@@ -345,12 +340,10 @@ def test_upgrade_shamir_recovery(gen: str, tag: str):
 
         # second share
         layout = recovery.enter_share(debug, MNEMONIC_SLIP39_BASIC_20_3of6[2])
-        assert layout is not None
         assert "1 more share" in layout.text
 
         # last one
         layout = recovery.enter_share(debug, MNEMONIC_SLIP39_BASIC_20_3of6[1])
-        assert layout is not None
         assert "You have successfully" in layout.text
 
         # Check the result
@@ -364,7 +357,6 @@ def test_upgrade_shamir_recovery(gen: str, tag: str):
 def test_upgrade_u2f(gen: str, tag: str):
     """Check U2F counter stayed the same after an upgrade."""
     with EmulatorWrapper(gen, tag) as emu:
-        assert emu.client is not None
         debuglink.load_device_by_mnemonic(
             emu.client,
             mnemonic=MNEMONIC,
@@ -381,7 +373,6 @@ def test_upgrade_u2f(gen: str, tag: str):
         storage = emu.get_storage()
 
     with EmulatorWrapper(gen, storage=storage) as emu:
-        assert emu.client is not None
         counter = fido.get_next_counter(emu.client)
         assert counter == 12
 

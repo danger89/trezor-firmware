@@ -54,7 +54,6 @@ def test_abort(emulator: Emulator):
     assert layout.get_title() == "RECOVERY MODE"
 
     layout = debug.click(buttons.OK, wait=True)
-    assert layout is not None
     assert "Select number of words" in layout.text
 
     device_handler.restart(emulator)
@@ -68,11 +67,9 @@ def test_abort(emulator: Emulator):
     assert "Select number of words" in layout.text
     layout = debug.click(buttons.CANCEL, wait=True)
 
-    assert layout is not None
     assert layout.get_title() == "ABORT RECOVERY"
     layout = debug.click(buttons.OK, wait=True)
 
-    assert layout is not None
     assert layout.text == "Homescreen"
     features = device_handler.features()
     assert features.recovery_mode is False
@@ -184,14 +181,12 @@ def test_recovery_multiple_resets(emulator: Emulator):
         expected_text = "Enter any share"
         remaining = len(shares)
         for share in shares:
-            assert layout is not None
             assert expected_text in layout.text
             layout = recovery.enter_share(debug, share)
             remaining -= 1
             expected_text = "You have entered"
             debug = _restart(device_handler, emulator)
 
-        assert layout is not None
         assert "You have successfully recovered your wallet" in layout.get_content()
 
     assert emulator.client is not None

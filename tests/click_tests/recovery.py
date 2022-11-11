@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from .. import buttons
 
@@ -8,7 +8,7 @@ if TYPE_CHECKING:
 
 def enter_word(
     debug: "DebugLink", word: str, is_slip39: bool = False
-) -> Optional["LayoutContent"]:
+) -> "LayoutContent":
     typed_word = word[:4]
     for coords in buttons.type_word(typed_word, is_slip39=is_slip39):
         debug.click(coords)
@@ -37,7 +37,6 @@ def select_number_of_words(
     # select number of words
     assert "Select number of words" in layout.get_content()
     layout = debug.click(buttons.OK, wait=True)
-    assert layout is not None
     if legacy_ui:
         assert layout.text == "WordSelector"
     else:
@@ -52,16 +51,14 @@ def select_number_of_words(
     )  # raises if num of words is invalid
     coords = buttons.grid34(index % 3, index // 3)
     layout = debug.click(coords, wait=True)
-    assert layout is not None
     assert "Enter any share" in layout.get_content()
 
 
 def enter_share(
     debug: "DebugLink", share: str, legacy_ui: bool = False
-) -> Optional["LayoutContent"]:
+) -> "LayoutContent":
     layout = debug.click(buttons.OK, wait=True)
 
-    assert layout is not None
     if legacy_ui:
         assert layout.text == "Slip39Keyboard"
     else:
@@ -80,7 +77,6 @@ def enter_shares(debug: "DebugLink", shares: list[str]) -> None:
     for share in shares:
         assert expected_text in layout.get_content()
         layout = enter_share(debug, share)
-        assert layout is not None
         remaining -= 1
         expected_text = f"{remaining} more share"
 
@@ -89,5 +85,4 @@ def enter_shares(debug: "DebugLink", shares: list[str]) -> None:
 
 def finalize(debug: "DebugLink") -> None:
     layout = debug.click(buttons.OK, wait=True)
-    assert layout is not None
     assert layout.text == "Homescreen"
