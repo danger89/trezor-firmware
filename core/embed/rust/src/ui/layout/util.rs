@@ -1,7 +1,7 @@
 use crate::{
     error::Error,
     micropython::{
-        buffer::{get_buffer, StrBuffer},
+        buffer::{get_buffer, obj_as_str},
         iter::{Iter, IterBuf},
         obj::Obj,
     },
@@ -44,30 +44,23 @@ fn objslice_at<'a>(
 ) -> Paragraph<&'a str> {
     const HEX_LOWER: [u8; 16] = *b"0123456789abcdef";
     let par = &objslice[index];
+    let content: &Obj = par.content();
 
     // Handle None as empty string.
-    if par.content() == Obj::const_none() {
+    if *content == Obj::const_none() {
         return par.with_content("");
     }
 
     // Handle str.
-    if StrBuffer::try_from(par.content()).is_ok() {
-        // SAFETY:
-        // (a) only immutable references are taken
-        // (b) micropython guarantees immutability and the buffer is not freed/moved as
-        //     long as self is managed by GC
-        let buffer = unsafe { get_buffer(par.content()) };
-        if let Ok(buffer) = buffer {
-            // SAFETY: validation was already performed in StrBuffer::try_from above.
-            let s = unsafe { str::from_utf8_unchecked(buffer) };
-            return par.with_content(&s[offset..]);
-        } else {
-            return par.with_content("ERROR");
-        }
+    if content.is_type_str() || content.is_qstr() {
+        return match obj_as_str(content) {
+            Ok(s) => par.with_content(&s[offset..]),
+            Err(_) => par.with_content("ERROR"),
+        };
     }
 
     // Handling bytes from now on.
-    if !par.content().is_type_bytes() {
+    if !content.is_type_bytes() {
         return par.with_content("ERROR");
     }
 
@@ -79,7 +72,7 @@ fn objslice_at<'a>(
     // SAFETY:
     // (a) only immutable references are taken
     // (b) reference is discarded before returning to micropython
-    let bin_slice = if let Ok(buf) = unsafe { get_buffer(par.content()) } {
+    let bin_slice = if let Ok(buf) = unsafe { get_buffer(*content) } {
         &buf[bin_off..]
     } else {
         return par.with_content("ERROR");
@@ -120,7 +113,7 @@ impl<const N: usize> ParagraphSource for Vec<Paragraph<Obj>, N> {
 
 impl<const N: usize> VecExt<Obj> for Vec<Paragraph<Obj>, N> {
     fn add(&mut self, paragraph: Paragraph<Obj>) -> &mut Self {
-        if paragraph.content() == Obj::const_none() {
+        if *paragraph.content() == Obj::const_none() {
             return self;
         }
         if self.push(paragraph).is_err() {

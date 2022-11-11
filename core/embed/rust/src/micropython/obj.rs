@@ -415,4 +415,8 @@ impl Obj {
     pub fn is_type_bytes(self) -> bool {
         unsafe { ffi::mp_type_bytes.is_type_of(self) }
     }
+
+    pub fn is_type_str(self) -> bool {
+        unsafe { ffi::mp_type_str.is_type_of(self) }
+    }
 }

@@ -319,11 +319,8 @@ impl<T> Paragraph<T> {
         self
     }
 
-    pub fn content(&self) -> T
-    where
-        T: Copy,
-    {
-        self.content
+    pub fn content(&self) -> &T {
+        &self.content
     }
 
     pub fn update(&mut self, content: T) {

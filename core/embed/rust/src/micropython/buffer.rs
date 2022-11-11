@@ -189,3 +189,18 @@ impl crate::trace::Trace for StrBuffer {
         self.as_ref().trace(t)
     }
 }
+
+/// Version of `get_buffer` for strings that is safe as long as the returned
+/// reference doesn't outlive its `Obj` that must be placed on stack or
+/// micropython heap.
+pub fn obj_as_str(obj: &Obj) -> Result<&str, Error> {
+    if !obj.is_type_str() && !obj.is_qstr() {
+        return Err(Error::TypeError);
+    }
+    // SAFETY:
+    // (a) only immutable references are taken.
+    // (b) micropython guarantees immutability and the buffer is not freed/moved as
+    //     long as obj is managed by GC.
+    let buffer = unsafe { get_buffer(*obj)? };
+    str::from_utf8(buffer).map_err(|_| Error::TypeError)
+}
