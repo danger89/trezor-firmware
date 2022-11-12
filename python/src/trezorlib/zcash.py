@@ -111,8 +111,8 @@ def sign_tx(
     signatures, serialized_tx = next(protocol)
     """
 
-    t_inputs = [x for x in inputs if isinstance(x, messages.TxInput)]
-    t_outputs = [x for x in outputs if isinstance(x, messages.TxOutput)]
+    t_inputs = [x for x in inputs if type(x) in (messages.TxInput, messages.TxInputType)]
+    t_outputs = [x for x in outputs if type(x) in (messages.TxOutput, messages.TxOutputType)]
     o_inputs = [x for x in inputs if isinstance(x, messages.ZcashOrchardInput)]
     o_outputs = [x for x in outputs if isinstance(x, messages.ZcashOrchardOutput)]
 
