@@ -92,7 +92,8 @@ def do_recover_core(client: Client, mnemonic: List[str], **kwargs: Any):
 
 def do_recover_r(client: Client, mnemonic: List[str], **kwargs: Any):
     def input_flow():
-        pytest.fail("Freezes")
+        if client.features.model == "R":
+            pytest.skip("Freezes")
         yield
         layout = client.debug.wait_layout()
         assert "check the recovery seed" in layout.text
@@ -235,6 +236,11 @@ def test_invalid_seed_core(client: Client):
         yield
         layout = client.debug.wait_layout()
         assert "Enter recovery seed" in layout.text
+        client.debug.press_right()
+
+        yield
+        layout = client.debug.wait_layout()
+        assert "WORD ENTERING" in layout.text
         client.debug.press_right()
 
         yield
