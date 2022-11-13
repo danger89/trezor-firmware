@@ -5,10 +5,9 @@ from trezor.enums import ButtonRequestType
 from trezor.strings import format_plural
 from trezor.ui.layouts import confirm_blob, confirm_text, should_show_more
 
+from ..management import text_r
 from . import networks
 from .helpers import decode_typed_data
-
-from ..management import text_r
 
 if TYPE_CHECKING:
     from typing import Awaitable, Iterable
