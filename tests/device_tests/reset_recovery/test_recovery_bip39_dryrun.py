@@ -224,7 +224,7 @@ def test_invalid_seed_core(client: Client):
         yield
         layout = client.debug.wait_layout()
         assert "Select the number of words" in layout.text
-        client.debug.press_right()
+        client.debug.press_yes()
 
         yield
         yield
@@ -236,12 +236,12 @@ def test_invalid_seed_core(client: Client):
         yield
         layout = client.debug.wait_layout()
         assert "Enter recovery seed" in layout.text
-        client.debug.press_right()
+        client.debug.press_yes()
 
         yield
         layout = client.debug.wait_layout()
         assert "WORD ENTERING" in layout.text
-        client.debug.press_right()
+        client.debug.press_yes()
 
         yield
         for _ in range(12):
