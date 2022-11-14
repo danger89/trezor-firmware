@@ -309,17 +309,8 @@ def test_upgrade_shamir_recovery(gen: str, tag: Optional[str]):
 
         device_handler.run(device.recover, pin_protection=False)
 
-        def is_legacy_ui(tag: Optional[str]) -> bool:
-            if tag is None:
-                return False
-            if tag.startswith("v"):
-                tag = tag[1:]
-            tag_version = tuple(int(n) for n in tag.split("."))
-            # New UI introduced in 2.5.4
-            return tag_version < (2, 5, 4)
-
         # Flow is different for old UI and new UI
-        legacy_ui = is_legacy_ui(tag)
+        legacy_ui = emu.client.version < (2, 5, 4)
 
         recovery.confirm_recovery(debug, legacy_ui=legacy_ui)
         recovery.select_number_of_words(debug, legacy_ui=legacy_ui)

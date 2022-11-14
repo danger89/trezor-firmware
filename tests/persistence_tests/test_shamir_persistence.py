@@ -42,7 +42,6 @@ def _restart(device_handler: BackgroundDeviceHandler, emulator: Emulator):
 
 @core_only
 def test_abort(emulator: Emulator):
-    assert emulator.client is not None
     device_handler = BackgroundDeviceHandler(emulator.client)
     debug = device_handler.debuglink()
     features = device_handler.features()
@@ -77,7 +76,6 @@ def test_abort(emulator: Emulator):
 
 @core_only
 def test_recovery_single_reset(emulator: Emulator):
-    assert emulator.client is not None
     device_handler = BackgroundDeviceHandler(emulator.client)
     debug = device_handler.debuglink()
     features = device_handler.features()
@@ -114,7 +112,6 @@ def test_recovery_on_old_wallet(emulator: Emulator):
     Initialize+GetFeatures). At minimum, these two messages must not interrupt the
     running recovery.
     """
-    assert emulator.client is not None
     device_handler = BackgroundDeviceHandler(emulator.client)
     debug = device_handler.debuglink()
     features = device_handler.features()
@@ -189,7 +186,6 @@ def test_recovery_multiple_resets(emulator: Emulator):
 
         assert "You have successfully recovered your wallet" in layout.get_content()
 
-    assert emulator.client is not None
     device_handler = BackgroundDeviceHandler(emulator.client)
     debug = device_handler.debuglink()
     features = device_handler.features()

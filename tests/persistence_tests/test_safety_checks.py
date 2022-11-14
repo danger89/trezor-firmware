@@ -28,7 +28,6 @@ def emulator() -> Iterator[Emulator]:
 def test_safety_checks_level_after_reboot(
     emulator: Emulator, set_level: SafetyCheckLevel, after_level: SafetyCheckLevel
 ):
-    assert emulator.client is not None
     device.wipe(emulator.client)
     debuglink.load_device(
         emulator.client,

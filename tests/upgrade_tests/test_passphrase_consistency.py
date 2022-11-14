@@ -65,7 +65,6 @@ def emulator(gen: str, tag: str) -> Iterator[Emulator]:
 )
 def test_passphrase_works(emulator: Emulator):
     """Check that passphrase handling in trezorlib works correctly in all versions."""
-    assert emulator.client is not None
     if emulator.client.features.model == "T" and emulator.client.version < (2, 3, 0):
         expected_responses = [
             messages.PassphraseRequest,
@@ -103,7 +102,6 @@ def test_init_device(emulator: Emulator):
     """Check that passphrase caching and session_id retaining works correctly across
     supported versions.
     """
-    assert emulator.client is not None
     if emulator.client.features.model == "T" and emulator.client.version < (2, 3, 0):
         expected_responses = [
             messages.PassphraseRequest,
