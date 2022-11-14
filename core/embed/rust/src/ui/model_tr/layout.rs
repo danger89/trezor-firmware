@@ -474,7 +474,7 @@ extern "C" fn tutorial(n_args: usize, args: *const Obj, kwargs: *mut Map) -> Obj
                         Font::MONO,
                     )
                         .newline()
-                        .text_mono("Tutorial complete.".into())
+                        .text_mono("Tutorial finished.".into())
                         .newline()
                         .newline()
                         .alignment(LineAlignment::Center)
