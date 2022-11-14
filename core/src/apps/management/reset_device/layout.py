@@ -136,7 +136,7 @@ async def _show_confirmation_failure(
     await show_warning(
         ctx,
         "warning_backup_check",
-        "Please check again.",
+        "Please check again",
         header,
         "That is the wrong word.",
         "Check again",
