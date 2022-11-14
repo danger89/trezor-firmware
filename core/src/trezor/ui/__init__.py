@@ -2,14 +2,9 @@
 import utime
 from micropython import const
 from trezorui import Display
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Awaitable, Generator
 
 from trezor import io, loop, res, utils, workflow
-
-if TYPE_CHECKING:
-    from typing import Any, Awaitable, Generator
-
-    pass
 
 # all rendering is done through a singleton of `Display`
 display = Display()
