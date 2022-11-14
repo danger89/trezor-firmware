@@ -58,7 +58,7 @@ def do_recover_core(client: Client, mnemonic: List[str], **kwargs: Any):
 
         yield
         layout = client.debug.wait_layout()
-        assert "Select number of words" in layout.text
+        assert "Select the number of words" in layout.text
         client.debug.click(buttons.OK)
 
         yield
@@ -101,7 +101,7 @@ def do_recover_r(client: Client, mnemonic: List[str], **kwargs: Any):
 
         yield
         layout = client.debug.wait_layout()
-        assert "Select number of words" in layout.text
+        assert "Select the number of words" in layout.text
         client.debug.press_right()
 
         yield
@@ -178,7 +178,7 @@ def test_invalid_seed_core(client: Client):
 
         yield
         layout = client.debug.wait_layout()
-        assert "Select number of words" in layout.text
+        assert "Select the number of words" in layout.text
         client.debug.click(buttons.OK)
 
         yield
@@ -207,7 +207,7 @@ def test_invalid_seed_core(client: Client):
         yield
         # retry screen
         layout = client.debug.wait_layout()
-        assert "Select number of words" in layout.text
+        assert "Select the number of words" in layout.text
         client.debug.click(buttons.CANCEL)
 
         yield
@@ -223,7 +223,7 @@ def test_invalid_seed_core(client: Client):
 
         yield
         layout = client.debug.wait_layout()
-        assert "Select number of words" in layout.text
+        assert "Select the number of words" in layout.text
         client.debug.press_right()
 
         yield
@@ -259,7 +259,7 @@ def test_invalid_seed_core(client: Client):
         yield
         # retry screen
         layout = client.debug.wait_layout()
-        assert "Select number of words" in layout.text
+        assert "Select the number of words" in layout.text
         client.debug.press_left()
 
         yield

@@ -18,7 +18,7 @@ def select_number_of_words(debug, num_of_words=20):
     layout = debug.read_layout()
 
     # select number of words
-    assert "Select number of words" in layout.text
+    assert "Select the number of words" in layout.text
     layout = debug.click(buttons.OK, wait=True)
     assert layout.text == "WordSelector"
 
