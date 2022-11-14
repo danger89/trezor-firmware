@@ -1102,7 +1102,7 @@ class RustProgress:
         ui.backlight_fade(ui.style.BACKLIGHT_NORMAL)
 
     def set_timer(self, token: int, deadline: int) -> None:
-        raise NotImplementedError
+        raise RuntimeError  # progress layouts should not set timers
 
     def request_complete_repaint(self) -> None:
         msg = self.layout.request_complete_repaint()

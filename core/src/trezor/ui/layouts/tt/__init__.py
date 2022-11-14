@@ -75,6 +75,7 @@ __all__ = (
     "show_popup",
     "draw_simple_text",
     "request_passphrase_on_device",
+    "request_passphrase_on_host",
     "request_pin_on_device",
     "should_show_more",
     "progress",

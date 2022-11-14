@@ -375,5 +375,5 @@ def show_progress(
     description: Callable[[], str] | None = None,
 ) -> object:
    """Show progress loader. Please note that the number of lines reserved on screen for
-   description is determined when object is place()d. If you want multiline descriptions
+   description is determined when `place()` is called. If you want multiline descriptions
    make sure description() returns something with that amount of lines."""

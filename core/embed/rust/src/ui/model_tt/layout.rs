@@ -1390,7 +1390,7 @@ pub static mp_module_trezorui2: Module = obj_module! {
     ///     description: Callable[[], str] | None = None,
     /// ) -> object:
     ///    """Show progress loader. Please note that the number of lines reserved on screen for
-    ///    description is determined when object is place()d. If you want multiline descriptions
+    ///    description is determined when `place()` is called. If you want multiline descriptions
     ///    make sure description() returns something with that amount of lines."""
     Qstr::MP_QSTR_show_progress => obj_fn_kw!(0, new_show_progress).as_obj(),
 };
