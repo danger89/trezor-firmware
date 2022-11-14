@@ -23,7 +23,7 @@ use crate::{
                 Checklist, Paragraph, ParagraphSource, ParagraphVecLong, ParagraphVecShort,
                 Paragraphs, VecExt,
             },
-            Border, Component, Timeout, TimeoutMsg,
+            Border, Component, Empty, Timeout, TimeoutMsg,
         },
         geometry,
         layout::{
@@ -610,8 +610,27 @@ fn new_show_modal(
     let allow_cancel: bool = kwargs.get_or(Qstr::MP_QSTR_allow_cancel, true)?;
     let time_ms: u32 = kwargs.get_or(Qstr::MP_QSTR_time_ms, 0)?;
 
-    let obj = match (allow_cancel, time_ms) {
-        (true, 0) => LayoutObj::new(
+    let no_buttons = button.as_ref().is_empty();
+    let obj = if no_buttons {
+        // No buttons and no timer, used when we only want to draw the dialog once and
+        // then throw away the layout object.
+        LayoutObj::new(IconDialog::new(icon, title, Empty).with_description(description))?.into()
+    } else if time_ms > 0 {
+        // Timeout, no buttons.
+        LayoutObj::new(
+            IconDialog::new(
+                icon,
+                title,
+                Timeout::new(time_ms).map(|msg| {
+                    (matches!(msg, TimeoutMsg::TimedOut)).then(|| CancelConfirmMsg::Confirmed)
+                }),
+            )
+            .with_description(description),
+        )?
+        .into()
+    } else if allow_cancel {
+        // Two buttons.
+        LayoutObj::new(
             IconDialog::new(
                 icon,
                 title,
@@ -623,8 +642,10 @@ fn new_show_modal(
             )
             .with_description(description),
         )?
-        .into(),
-        (false, 0) => LayoutObj::new(
+        .into()
+    } else {
+        // Single button.
+        LayoutObj::new(
             IconDialog::new(
                 icon,
                 title,
@@ -634,18 +655,7 @@ fn new_show_modal(
             )
             .with_description(description),
         )?
-        .into(),
-        (_, time_ms) => LayoutObj::new(
-            IconDialog::new(
-                icon,
-                title,
-                Timeout::new(time_ms).map(|msg| {
-                    (matches!(msg, TimeoutMsg::TimedOut)).then(|| CancelConfirmMsg::Confirmed)
-                }),
-            )
-            .with_description(description),
-        )?
-        .into(),
+        .into()
     };
 
     Ok(obj)
@@ -1206,7 +1216,7 @@ pub static mp_module_trezorui2: Module = obj_module! {
     ///     allow_cancel: bool = False,
     ///     time_ms: int = 0,
     /// ) -> object:
-    ///     """Error modal."""
+    ///     """Error modal. No buttons shown when `button` is empty string."""
     Qstr::MP_QSTR_show_error => obj_fn_kw!(0, new_show_error).as_obj(),
 
     /// def show_warning(
@@ -1217,7 +1227,7 @@ pub static mp_module_trezorui2: Module = obj_module! {
     ///     allow_cancel: bool = False,
     ///     time_ms: int = 0,
     /// ) -> object:
-    ///     """Warning modal."""
+    ///     """Warning modal. No buttons shown when `button` is empty string."""
     Qstr::MP_QSTR_show_warning => obj_fn_kw!(0, new_show_warning).as_obj(),
 
     /// def show_success(
@@ -1228,7 +1238,7 @@ pub static mp_module_trezorui2: Module = obj_module! {
     ///     allow_cancel: bool = False,
     ///     time_ms: int = 0,
     /// ) -> object:
-    ///     """Success modal."""
+    ///     """Success modal. No buttons shown when `button` is empty string."""
     Qstr::MP_QSTR_show_success => obj_fn_kw!(0, new_show_success).as_obj(),
 
     /// def show_info(
@@ -1239,7 +1249,7 @@ pub static mp_module_trezorui2: Module = obj_module! {
     ///     allow_cancel: bool = False,
     ///     time_ms: int = 0,
     /// ) -> object:
-    ///     """Info modal."""
+    ///     """Info modal. No buttons shown when `button` is empty string."""
     Qstr::MP_QSTR_show_info => obj_fn_kw!(0, new_show_info).as_obj(),
 
     /// def show_simple(

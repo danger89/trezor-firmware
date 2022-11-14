@@ -952,7 +952,6 @@ def show_coinjoin() -> None:
             title="CoinJoin in progress.",
             description="Do not disconnect your Trezor.",
             button="",
-            time_ms=1,
         )
     ).draw_simple()
 
@@ -1028,7 +1027,6 @@ def request_passphrase_on_host() -> None:
         trezorui2.show_info(
             title="Please type your passphrase on the connected host.",
             button="",
-            time_ms=1,
         )
     ).draw_simple()
 

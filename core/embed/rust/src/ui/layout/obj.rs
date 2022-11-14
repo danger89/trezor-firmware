@@ -336,8 +336,10 @@ impl TryFrom<Duration> for Obj {
     }
 }
 
-impl From<Never> for Obj {
-    fn from(_: Never) -> Self {
+impl TryFrom<Never> for Obj {
+    type Error = Error;
+
+    fn try_from(_: Never) -> Result<Self, Self::Error> {
         unreachable!()
     }
 }
