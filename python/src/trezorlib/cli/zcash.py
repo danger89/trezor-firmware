@@ -17,23 +17,12 @@
 import click
 
 from .. import zcash, tools
-from . import with_client
+from . import ChoiceType, with_client
 
-
-class NetworkParamType(click.ParamType):
-    name = "network"
-
-    def convert(self, value, param, ctx):
-        try:
-            return {
-                "mainnet": "Zcash",
-                "testnet": "Zcash Testnet",
-            }[value]
-        except KeyError:
-            self.fail(f"{value!r} is not a valid network", param, ctx)
-
-
-NETWORK = NetworkParamType()
+NETWORKS = {
+    "mainnet": "Zcash",
+    "testnet": "Zcash Testnet",
+}
 
 
 @click.group(name="zcash")
@@ -43,8 +32,7 @@ def cli():
 
 @cli.command()
 @click.option("-z", "--z-address", help="ZIP-32 Orchard derivation path.")
-@click.option("-w", "--network", type=NETWORK, default="mainnet")
-@click.option("-t", "--network", type=NETWORK, default="mainnet")
+@click.option("-w", "--network", type=ChoiceType(NETWORKS), default="mainnet")
 @click.option('-f', '--full', is_flag=True, help="Return **Full** Vieving Key.")
 @with_client
 def get_viewing_key(client, z_address, network, full):
@@ -66,7 +54,7 @@ def get_viewing_key(client, z_address, network, full):
 @click.option("-z", "--z-address", help="ZIP-32 Orchard derivation path.")
 @click.option("-j", "--diversifier-index", default=0, type=int, help="diversifier index of the shielded address.")
 @click.option("-d", "--show-display", is_flag=True)
-@click.option("-w", "--network", type=NETWORK, default="mainnet")
+@click.option("-w", "--network", type=ChoiceType(NETWORKS), default="mainnet")
 @with_client
 def get_address(client, t_address, z_address, diversifier_index, show_display, network):
     """
